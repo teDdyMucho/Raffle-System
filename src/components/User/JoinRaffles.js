@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Ticket, Clock, Users, Gift, Shuffle, Plus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
+import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
 
 const JoinRaffles = () => {
   const [selectedRaffle, setSelectedRaffle] = useState(null);
@@ -144,7 +145,7 @@ const JoinRaffles = () => {
           >
             {raffle.image_url && (
               <div className="mb-6 -mt-6 -mx-6">
-                <img src={raffle.image_url} alt={raffle.title} className="w-full h-48 object-cover rounded-t-lg" />
+                <img src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL} alt={raffle.title} className="w-full h-48 object-cover rounded-t-lg" onError={(e) => { e.currentTarget.src = TRANSPARENT_PIXEL; }} />
               </div>
             )}
             <div className="flex justify-between items-start mb-4">
@@ -204,7 +205,12 @@ const JoinRaffles = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <div className="text-center mb-6">
               {selectedRaffle.image_url && (
-                <img src={selectedRaffle.image_url} alt={selectedRaffle.title} className="w-full h-32 object-cover rounded-md mb-3" />
+                <img
+                  src={resolveImageUrl(selectedRaffle.image_url) || TRANSPARENT_PIXEL}
+                  alt={selectedRaffle.title}
+                  className="w-full h-32 object-cover rounded-md mb-3"
+                  onError={(e) => { e.currentTarget.src = TRANSPARENT_PIXEL; }}
+                />
               )}
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 {selectedRaffle.title}
@@ -229,7 +235,7 @@ const JoinRaffles = () => {
                   />
                   <span className="text-gray-700 dark:text-gray-300">Auto-generate lucky number</span>
                 </label>
-                
+
                 <label className="flex items-center">
                   <input
                     type="radio"

@@ -37,6 +37,13 @@ const Reports = () => {
     ]
   };
 
+  const handleGenerate = () => {
+    const typeLabel = reportTypes.find(r => r.value === reportType)?.label || reportType;
+    const rangeLabel = dateRanges.find(r => r.value === dateRange)?.label || dateRange;
+    alert(`Generating ${typeLabel} for ${rangeLabel}...`);
+    // In a real app, trigger API download or query here
+  };
+
   const exportReport = (format) => {
     // Mock export functionality
     console.log(`Exporting ${reportType} report as ${format}`);
@@ -119,7 +126,7 @@ const Reports = () => {
           </div>
 
           <div className="flex items-end">
-            <button className="w-full btn-primary flex items-center justify-center">
+            <button onClick={handleGenerate} className="w-full btn-primary flex items-center justify-center">
               <BarChart3 className="w-4 h-4 mr-2" />
               Generate Report
             </button>
@@ -191,7 +198,7 @@ const Reports = () => {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Revenue Trend</h2>
-            <button className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm">
+            <button onClick={() => setReportType('revenue')} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm">
               View Details
             </button>
           </div>
@@ -220,7 +227,7 @@ const Reports = () => {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Top Performing Raffles</h2>
-            <button className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm">
+            <button onClick={() => setReportType('raffles')} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm">
               View All
             </button>
           </div>
@@ -349,7 +356,7 @@ const Reports = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Set up automated reports to be sent to your email weekly or monthly.
               </p>
-              <button className="btn-primary text-sm">
+              <button onClick={() => alert('Scheduling setup coming soon.')} className="btn-primary text-sm">
                 Setup Schedule
               </button>
             </div>

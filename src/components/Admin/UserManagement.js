@@ -5,6 +5,8 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
 
   // Mock users data
   const users = [
@@ -116,6 +118,12 @@ const UserManagement = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const endIdx = startIdx + pageSize;
+  const pagedUsers = filteredUsers.slice(startIdx, endIdx);
+
   const handleUserAction = (userId, action) => {
     console.log(`${action} user ${userId}`);
     alert(`User ${action} successfully!`);
@@ -140,10 +148,12 @@ const UserManagement = () => {
   };
 
   const selectAllUsers = () => {
-    if (selectedUsers.length === filteredUsers.length) {
-      setSelectedUsers([]);
+    const pageIds = pagedUsers.map(u => u.id);
+    const allSelectedOnPage = pageIds.every(id => selectedUsers.includes(id));
+    if (allSelectedOnPage) {
+      setSelectedUsers(prev => prev.filter(id => !pageIds.includes(id)));
     } else {
-      setSelectedUsers(filteredUsers.map(user => user.id));
+      setSelectedUsers(prev => Array.from(new Set([...prev, ...pageIds])));
     }
   };
 
@@ -274,7 +284,7 @@ const UserManagement = () => {
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                    checked={pagedUsers.length > 0 && pagedUsers.every(u => selectedUsers.includes(u.id))}
                     onChange={selectAllUsers}
                     className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                   />
@@ -297,7 +307,7 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredUsers.map((user) => (
+              {pagedUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-6 py-4">
                     <input
@@ -406,12 +416,24 @@ const UserManagement = () => {
         <div className="card">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700 dark:text-gray-300">
-              Showing <span className="font-medium">{filteredUsers.length}</span> of{' '}
-              <span className="font-medium">{users.length}</span> users
+              Showing <span className="font-medium">{filteredUsers.length === 0 ? 0 : startIdx + 1}-{Math.min(endIdx, filteredUsers.length)}</span> of{' '}
+              <span className="font-medium">{filteredUsers.length}</span> users
             </div>
             <div className="flex space-x-2">
-              <button className="btn-secondary text-sm">Previous</button>
-              <button className="btn-secondary text-sm">Next</button>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className={`btn-secondary text-sm ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className={`btn-secondary text-sm ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

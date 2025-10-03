@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { 
   BarChart3, 
   Users, 
@@ -17,6 +18,7 @@ import {
 
 const AgentDashboard = () => {
   const { user } = useAuth();
+  const { show } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Mock data for agent dashboard
@@ -221,11 +223,17 @@ const AgentDashboard = () => {
                       {raffle.participants} participants
                     </div>
                     <div className="flex space-x-2">
-                      <button className="flex items-center px-3 py-1 text-xs bg-bonfire-100 dark:bg-bonfire-900/30 text-bonfire-600 dark:text-bonfire-400 rounded-md hover:bg-bonfire-200 dark:hover:bg-bonfire-900/50 transition-colors">
+                      <button
+                        onClick={() => show(`Viewing details for: ${raffle.title}`, { type: 'info' })}
+                        className="flex items-center px-3 py-1 text-xs bg-bonfire-100 dark:bg-bonfire-900/30 text-bonfire-600 dark:text-bonfire-400 rounded-md hover:bg-bonfire-200 dark:hover:bg-bonfire-900/50 transition-colors"
+                      >
                         <Eye className="w-3 h-3 mr-1" />
                         View Details
                       </button>
-                      <button className="flex items-center px-3 py-1 text-xs bg-embers-100 dark:bg-embers-900/30 text-embers-600 dark:text-embers-400 rounded-md hover:bg-embers-200 dark:hover:bg-embers-900/50 transition-colors">
+                      <button
+                        onClick={() => show(`Announcement sent for: ${raffle.title}`, { type: 'success' })}
+                        className="flex items-center px-3 py-1 text-xs bg-embers-100 dark:bg-embers-900/30 text-embers-600 dark:text-embers-400 rounded-md hover:bg-embers-200 dark:hover:bg-embers-900/50 transition-colors"
+                      >
                         <Megaphone className="w-3 h-3 mr-1" />
                         Announce
                       </button>
@@ -246,11 +254,17 @@ const AgentDashboard = () => {
               Quick Actions
             </h2>
             <div className="space-y-3">
-              <button className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-bonfire-500 to-embers-500 text-white rounded-lg hover:from-bonfire-600 hover:to-embers-600 transition-all duration-200">
+              <button
+                onClick={() => show('Register participant flow coming soon.', { type: 'info' })}
+                className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-bonfire-500 to-embers-500 text-white rounded-lg hover:from-bonfire-600 hover:to-embers-600 transition-all duration-200"
+              >
                 <UserPlus className="w-5 h-5 mr-2" />
                 Register New Participant
               </button>
-              <button className="w-full flex items-center justify-center px-4 py-3 border-2 border-bonfire-500 text-bonfire-600 dark:text-bonfire-400 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-all duration-200">
+              <button
+                onClick={() => show('Opening support tools (coming soon).', { type: 'info' })}
+                className="w-full flex items-center justify-center px-4 py-3 border-2 border-bonfire-500 text-bonfire-600 dark:text-bonfire-400 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-all duration-200"
+              >
                 <Headphones className="w-5 h-5 mr-2" />
                 Assist User
               </button>
@@ -295,7 +309,10 @@ const AgentDashboard = () => {
               </div>
             </div>
 
-            <button className="w-full mt-4 px-4 py-2 text-sm text-bonfire-600 dark:text-bonfire-400 border border-bonfire-500 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-colors">
+            <button
+              onClick={() => show('Navigating to full insights (coming soon).', { type: 'info' })}
+              className="w-full mt-4 px-4 py-2 text-sm text-bonfire-600 dark:text-bonfire-400 border border-bonfire-500 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-colors"
+            >
               View Full Insights
             </button>
           </div>

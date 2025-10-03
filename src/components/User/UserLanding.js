@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Ticket, Clock, Trophy, Users, ArrowRight, Star, Gift } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
 
 const UserLanding = () => {
   const { user } = useAuth();
@@ -143,7 +144,7 @@ const UserLanding = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-blackswarm-900 dark:text-magnolia-50">🔥 Hot Raffles</h2>
-          <button className="text-bonfire-600 dark:text-bonfire-400 hover:text-bonfire-700 dark:hover:text-bonfire-300 font-medium flex items-center">
+          <button onClick={() => navigate('/user/join')} className="text-bonfire-600 dark:text-bonfire-400 hover:text-bonfire-700 dark:hover:text-bonfire-300 font-medium flex items-center">
             View All
             <ArrowRight className="w-4 h-4 ml-1" />
           </button>
@@ -171,7 +172,12 @@ const UserLanding = () => {
               <div className="text-center mb-4">
                 <div className="text-4xl mb-2">
                   {raffle.image_url ? (
-                    <img src={raffle.image_url} alt={raffle.title} className="w-full h-32 object-cover rounded-md mb-3" />
+                    <img
+                      src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
+                      alt={raffle.title}
+                      className="w-full h-32 object-cover rounded-md mb-3"
+                      onError={(e) => { e.currentTarget.src = TRANSPARENT_PIXEL; }}
+                    />
                   ) : (
                     '🎁'
                   )}
@@ -192,7 +198,7 @@ const UserLanding = () => {
                   </div>
                 </div>
 
-                <button className="w-full bg-gradient-to-r from-bonfire-500 to-embers-500 text-white py-2 px-4 rounded-lg hover:from-bonfire-600 hover:to-embers-600 transition-all duration-200">
+                <button onClick={() => navigate('/user/join')} className="w-full bg-gradient-to-r from-bonfire-500 to-embers-500 text-white py-2 px-4 rounded-lg hover:from-bonfire-600 hover:to-embers-600 transition-all duration-200">
                   Join Raffle
                 </button>
               </div>

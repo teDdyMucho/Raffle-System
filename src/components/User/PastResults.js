@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Trophy, Calendar, Ticket, Users, Search, Filter } from 'lucide-react';
+import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
 import { useLocation } from 'react-router-dom';
 
 const PastResults = () => {
@@ -156,7 +157,12 @@ const PastResults = () => {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center">
                   {raffle.image_url && (
-                    <img src={raffle.image_url} alt={raffle.title} className="w-16 h-16 object-cover rounded mr-3" />
+                    <img
+                      src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
+                      alt={raffle.title}
+                      className="w-16 h-16 object-cover rounded mr-3"
+                      onError={(e) => { e.currentTarget.src = TRANSPARENT_PIXEL; }}
+                    />
                   )}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">

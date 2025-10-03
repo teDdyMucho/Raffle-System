@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Pause, Play, Square, Trophy, Calendar, Users, DollarSign, Search, Filter, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
 
 const RaffleManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -261,7 +262,12 @@ const RaffleManagement = () => {
           <div key={raffle.id} className="card hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-l-primary-500">
             {raffle.image_url && (
               <div className="mb-6 -mt-6 -mx-6">
-                <img src={raffle.image_url} alt={raffle.title} className="w-full h-48 object-cover rounded-t-lg" />
+                <img
+                  src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
+                  alt={raffle.title}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                  onError={(e) => { e.currentTarget.src = TRANSPARENT_PIXEL; }}
+                />
               </div>
             )}
             {/* Header */}
