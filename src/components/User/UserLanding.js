@@ -23,8 +23,7 @@ const UserLanding = () => {
         .select('*')
         .eq('status', 'active')
         .gte('end_date', today)
-        .order('end_date', { ascending: true })
-        .limit(6);
+        .order('end_date', { ascending: true });
       if (error) throw error;
       setActiveRaffles(data || []);
 

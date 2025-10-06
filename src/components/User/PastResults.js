@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Trophy, Calendar, Ticket, Users, Search, Filter } from 'lucide-react';
 import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
 import { useLocation } from 'react-router-dom';
+import { supabase } from '../../lib/supabaseClient';
 
 const PastResults = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,61 +13,30 @@ const PastResults = () => {
   const location = useLocation();
   const categories = ['all', 'Electronics', 'Gaming', 'Luxury', 'Fashion', 'Home'];
 
-  // Mock completed raffles
-  const mockResults = [
-    {
-      id: 1,
-      title: 'iPad Pro 12.9" Giveaway',
-      category: 'Electronics',
-      end_date: '2024-01-15',
-      prize_value: 1099,
-      winner_ticket: '123456',
-      winner_name: 'Sarah M.',
-      total_participants: 892
-    },
-    {
-      id: 2,
-      title: 'Gaming Chair Ultimate',
-      category: 'Gaming',
-      end_date: '2024-01-10',
-      prize_value: 599,
-      winner_ticket: '789012',
-      winner_name: 'John D.',
-      total_participants: 445
-    },
-    {
-      id: 3,
-      title: 'Nintendo Switch OLED',
-      category: 'Gaming',
-      end_date: '2024-01-05',
-      prize_value: 349,
-      winner_ticket: '345678',
-      winner_name: 'Emma L.',
-      total_participants: 1234
-    },
-    {
-      id: 4,
-      title: 'AirPods Pro 2',
-      category: 'Electronics',
-      end_date: '2023-12-28',
-      prize_value: 249,
-      winner_ticket: '901234',
-      winner_name: 'Mike R.',
-      total_participants: 567
-    }
-  ];
 
   useEffect(() => {
+    const fetchResults = async () => {
+      setLoading(true);
+      let query = supabase
+        .from('raffles')
+        .select('*')
+        .order('end_date', { ascending: false });
+      // Filter for completed raffles (status or end_date in the past)
+      const now = new Date().toISOString();
+      query = query.or('status.eq.completed,end_date.lt.' + now);
+      const { data, error } = await query;
+      if (!error && Array.isArray(data)) {
+        setResults(data);
+      } else {
+        setResults([]);
+      }
+      setLoading(false);
+    };
     // seed search from ?q=
     const params = new URLSearchParams(location.search);
     const q = params.get('q');
     if (q) setSearchTerm(q);
-    setLoading(true);
-    const t = setTimeout(() => {
-      setResults(mockResults);
-      setLoading(false);
-    }, 400);
-    return () => clearTimeout(t);
+    fetchResults();
   }, [location.search]);
 
   const filteredRaffles = results.filter((raffle) => {

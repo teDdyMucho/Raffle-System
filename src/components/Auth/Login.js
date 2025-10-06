@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Headphones, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, User, Headphones, Mail, Lock, Sun, Moon } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +16,7 @@ const Login = () => {
   const { login } = useAuth();
   const { show } = useToast();
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,7 +59,18 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-magnolia-50 to-magnolia-100 dark:from-blackswarm-900 dark:to-blackswarm-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-magnolia-50 to-magnolia-100 dark:from-blackswarm-900 dark:to-blackswarm-800 flex items-center justify-center p-4 relative">
+      {/* Theme Toggle */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-magnolia-300 dark:border-blackswarm-600 bg-white/80 dark:bg-blackswarm-800 text-blackswarm-800 dark:text-magnolia-200 shadow hover:bg-white dark:hover:bg-blackswarm-700 transition"
+        aria-label="Toggle theme"
+        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        <span className="text-sm hidden sm:inline">{isDark ? 'Light' : 'Dark'} Mode</span>
+      </button>
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">

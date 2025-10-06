@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Ticket, Clock, Users, Gift, Shuffle, Plus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
+import { tryDebitForPurchase, toCents, creditBalanceCents } from '../../lib/wallet';
 import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
 
 const JoinRaffles = () => {
@@ -65,20 +66,36 @@ const JoinRaffles = () => {
       setTicketNumber(generateRandomTicket());
     }
   };
-
   const handleSubmitTicket = async () => {
     if (!selectedRaffle || !ticketNumber) return;
     if (ticketNumber.length !== 6) return;
     try {
       setJoining(true);
+      // 1) Debit wallet first based on raffle ticket price
+      const priceCents = toCents(selectedRaffle.ticket_price || 0);
+      if (!user?.id) throw new Error('Not authenticated');
+      const debitRes = await tryDebitForPurchase(user.id, priceCents);
+      if (!debitRes.success) {
+        if (debitRes.reason === 'insufficient_funds') {
+          alert('Insufficient wallet balance. Please cash in first.');
+          return;
+        }
+        throw new Error(debitRes.error || 'Failed to debit wallet');
+      }
+
       const payload = {
         raffle_id: selectedRaffle.id,
         ticket_number: ticketNumber,
+        user_id: user?.id || null,
         user_email: user?.email || 'guest@example.com',
         user_name: user?.name || 'Guest',
       };
       const { error } = await supabase.from('tickets').insert([payload]);
-      if (error) throw error;
+      if (error) {
+        // Refund the debit if ticket creation fails
+        await creditBalanceCents(user.id, priceCents);
+        throw error;
+      }
       alert(`Successfully joined ${selectedRaffle.title} with ticket #${ticketNumber}!`);
       setSelectedRaffle(null);
       setTicketNumber('');

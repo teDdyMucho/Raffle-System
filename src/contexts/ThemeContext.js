@@ -11,31 +11,49 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    // Check for stored theme preference or system preference
-    const storedTheme = localStorage.getItem('raffle_theme');
-    if (storedTheme) {
-      setIsDark(storedTheme === 'dark');
-    } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDark(prefersDark);
+  // Initialize from localStorage synchronously to avoid flicker on refresh
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      const stored = localStorage.getItem('raffle_theme');
+      if (stored === 'dark') return true;
+      if (stored === 'light') return false;
+      // fallback to system preference
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch (_) {
+      return false;
     }
-  }, []);
+  });
 
+  // Apply theme class and persist preference
   useEffect(() => {
-    // Apply theme to document
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    try {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem('raffle_theme', isDark ? 'dark' : 'light');
+    } catch (_) {
+      // ignore
     }
-    
-    // Store preference
-    localStorage.setItem('raffle_theme', isDark ? 'dark' : 'light');
   }, [isDark]);
+
+  // Optional: keep in sync with system changes if user hasn't explicitly chosen
+  useEffect(() => {
+    const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    if (!mq) return;
+    const handler = (e) => {
+      const stored = localStorage.getItem('raffle_theme');
+      // only auto-switch if user never stored a preference
+      if (!stored) setIsDark(!!e.matches);
+    };
+    if (mq.addEventListener) mq.addEventListener('change', handler);
+    else if (mq.addListener) mq.addListener(handler);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', handler);
+      else if (mq.removeListener) mq.removeListener(handler);
+    };
+  }, []);
 
   const toggleTheme = () => {
     setIsDark(!isDark);

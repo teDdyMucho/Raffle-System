@@ -31,6 +31,9 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
     { id: 'commission', label: 'Commission Tracker', icon: DollarSign },
     { id: 'media-library', label: 'Media Library', icon: ImageIcon },
   ];
+  const visibleMd = navigationItems.slice(0, 3);
+  const overflowMd = navigationItems.slice(3);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -46,9 +49,9 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
   return (
     <header className="bg-magnolia-50 dark:bg-blackswarm-800 border-b border-magnolia-200 dark:border-blackswarm-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-shrink-0 mr-6">
             <div className="flex-shrink-0 flex items-center">
               <div className="h-8 w-8 bg-gradient-to-r from-bonfire-500 to-embers-500 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-white font-bold text-sm">🎟️</span>
@@ -60,28 +63,82 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              return (
+          <nav className="hidden md:flex flex-1 items-center justify-center px-2 space-x-6 lg:space-x-12">
+            {/* md: show first 3 + More; lg+: show all */}
+            <div className="hidden lg:flex items-center gap-6">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavigation(item.id)}
+                    className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                      currentPage === item.id
+                        ? 'text-bonfire-600 dark:text-bonfire-400 bg-bonfire-50 dark:bg-bonfire-900/20'
+                        : 'text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex lg:hidden items-center gap-6">
+              {visibleMd.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavigation(item.id)}
+                    className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                      currentPage === item.id
+                        ? 'text-bonfire-600 dark:text-bonfire-400 bg-bonfire-50 dark:bg-bonfire-900/20'
+                        : 'text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {item.label}
+                  </button>
+                );
+              })}
+              {/* More dropdown */}
+              <div className="relative">
                 <button
-                  key={item.id}
-                  onClick={() => handleNavigation(item.id)}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    currentPage === item.id
-                      ? 'text-bonfire-600 dark:text-bonfire-400 bg-bonfire-50 dark:bg-bonfire-900/20'
-                      : 'text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700'
-                  }`}
+                  onClick={() => setIsMoreOpen((v) => !v)}
+                  className="px-4 py-2.5 rounded-md text-sm font-medium text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700 transition-colors"
                 >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {item.label}
+                  More
                 </button>
-              );
-            })}
+                {isMoreOpen && (
+                  <div className="absolute left-0 mt-2 w-56 bg-magnolia-50 dark:bg-blackswarm-800 rounded-md shadow-lg border border-magnolia-200 dark:border-blackswarm-700 z-50">
+                    <div className="py-1">
+                      {overflowMd.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => { handleNavigation(item.id); setIsMoreOpen(false); }}
+                            className={`flex items-center w-full px-4 py-2 text-sm text-left ${
+                              currentPage === item.id
+                                ? 'text-bonfire-600 dark:text-bonfire-400 bg-bonfire-50 dark:bg-bonfire-900/20'
+                                : 'text-blackswarm-700 dark:text-magnolia-300 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700'
+                            }`}
+                          >
+                            <Icon className="w-4 h-4 mr-3" />
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+          </div>
           </nav>
 
           {/* Right side - Theme toggle and Profile */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6 flex-shrink-0 ml-4">
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -89,7 +146,6 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-
             {/* Profile Dropdown */}
             <div className="relative">
               <button
