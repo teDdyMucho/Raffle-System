@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Headphones, Mail, Lock, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, UserPlus } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [role, setRole] = useState('user');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -62,13 +61,13 @@ const SignUp = () => {
     }
 
     setLoading(true);
-    const res = await signUp({ email, password, role, name });
+    const res = await signUp({ email, password, name });
     setLoading(false);
 
     if (res.success) {
       show('Account created successfully! Welcome to Raffle System!', { type: 'success', duration: 4000 });
-      // Redirect based on role after sign in
-      navigate(role === 'agent' ? '/agent' : '/user');
+      // Only regular users can sign up; send them to user area
+      navigate('/user');
     } else {
       const errorMsg = res.error || 'Failed to create account';
       setError(errorMsg);
@@ -94,38 +93,7 @@ const SignUp = () => {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6 space-y-4">
-            {/* Role Selection */}
-            <div>
-              <label className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-2">
-                Select Role
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRole('user')}
-                  className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
-                    role === 'user'
-                      ? 'border-bonfire-500 bg-bonfire-50 dark:bg-bonfire-900/20 text-bonfire-700 dark:text-bonfire-300'
-                      : 'border-magnolia-300 dark:border-blackswarm-600 text-blackswarm-700 dark:text-magnolia-300 hover:border-magnolia-400 dark:hover:border-blackswarm-500'
-                  }`}
-                >
-                  <User className="w-5 h-5 mr-2" />
-                  User
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('agent')}
-                  className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
-                    role === 'agent'
-                      ? 'border-bonfire-500 bg-bonfire-50 dark:bg-bonfire-900/20 text-bonfire-700 dark:text-bonfire-300'
-                      : 'border-magnolia-300 dark:border-blackswarm-600 text-blackswarm-700 dark:text-magnolia-300 hover:border-magnolia-400 dark:hover:border-blackswarm-500'
-                  }`}
-                >
-                  <Headphones className="w-5 h-5 mr-2" />
-                  Agent
-                </button>
-              </div>
-            </div>
+            {/* Role Selection removed: only users can sign up */}
 
             {/* Name */}
             <div>

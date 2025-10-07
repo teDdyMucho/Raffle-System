@@ -8,13 +8,12 @@ import {
   Moon, 
   BarChart3, 
   Users, 
-  Settings, 
   Headphones,
   TrendingUp,
   DollarSign,
   User,
   LogOut,
-  Image as ImageIcon
+  Settings
 } from 'lucide-react';
 
 const AgentHeader = ({ currentPage, onNavigate }) => {
@@ -26,10 +25,8 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'user-support', label: 'User Support', icon: Headphones },
-    { id: 'raffle-operations', label: 'Raffle Operations', icon: Settings },
     { id: 'insights', label: 'Insights', icon: TrendingUp },
     { id: 'commission', label: 'Commission Tracker', icon: DollarSign },
-    { id: 'media-library', label: 'Media Library', icon: ImageIcon },
   ];
   const visibleMd = navigationItems.slice(0, 3);
   const overflowMd = navigationItems.slice(3);

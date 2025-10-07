@@ -8,25 +8,19 @@ import {
   Ticket, 
   Clock, 
   TrendingUp,
-  UserPlus,
   Headphones,
   Eye,
   Megaphone,
   Calendar,
   Target,
-  Activity,
-  X
+  Activity
 } from 'lucide-react';
 
 const AgentDashboard = () => {
   const { user } = useAuth();
   const { show } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
-  // Register participant modal state
-  const [showRegister, setShowRegister] = useState(false);
-  const [registerLoading, setRegisterLoading] = useState(false);
-  const [registerError, setRegisterError] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  // Removed register participant feature
 
   // Mock data for agent dashboard
   const stats = [
@@ -277,13 +271,6 @@ const AgentDashboard = () => {
             </h2>
             <div className="space-y-3">
               <button
-                onClick={() => { setShowRegister(true); setRegisterError(''); }}
-                className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-bonfire-500 to-embers-500 text-white rounded-lg hover:from-bonfire-600 hover:to-embers-600 transition-all duration-200"
-              >
-                <UserPlus className="w-5 h-5 mr-2" />
-                Register New User
-              </button>
-              <button
                 onClick={() => show('Opening support tools (coming soon).', { type: 'info' })}
                 className="w-full flex items-center justify-center px-4 py-3 border-2 border-bonfire-500 text-bonfire-600 dark:text-bonfire-400 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-all duration-200"
               >
@@ -340,126 +327,7 @@ const AgentDashboard = () => {
           </div>
         </div>
       </div>
-      {/* Register Participant Modal */}
-      {showRegister && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg bg-magnolia-50 dark:bg-blackswarm-800 rounded-xl shadow-2xl p-6 relative">
-            <button
-              className="absolute top-3 right-3 text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400"
-              onClick={() => setShowRegister(false)}
-              aria-label="Close"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <h3 className="text-lg font-bold text-blackswarm-900 dark:text-magnolia-50 mb-4">Register New Participant</h3>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setRegisterError('');
-                const name = form.name?.trim();
-                const email = form.email?.trim();
-                const phone = form.phone?.trim();
-                const password = form.password?.trim();
-                if (!name || !email || !password) {
-                  setRegisterError('Name and Email are required');
-                  return;
-                }
-                if (password.length < 6) {
-                  setRegisterError('Password must be at least 6 characters');
-                  return;
-                }
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                  setRegisterError('Please enter a valid email');
-                  return;
-                }
-                try {
-                  setRegisterLoading(true);
-                  const payload = {
-                    name,
-                    email,
-                    phone: phone || null,
-                    password,
-                  };
-                  const { error } = await supabase.from('app_users').insert(payload);
-                  if (error) throw error;
-                  show('Participant registered', { type: 'success' });
-                  setShowRegister(false);
-                  setForm({ name: '', email: '', phone: '', password: '' });
-                } catch (err) {
-                  setRegisterError(err.message || String(err));
-                } finally {
-                  setRegisterLoading(false);
-                }
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-magnolia-300 dark:border-blackswarm-600 bg-white dark:bg-blackswarm-700 text-blackswarm-900 dark:text-magnolia-50 focus:outline-none focus:ring-2 focus:ring-bonfire-500"
-                  placeholder="e.g., Juan Dela Cruz"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-magnolia-300 dark:border-blackswarm-600 bg-white dark:bg-blackswarm-700 text-blackswarm-900 dark:text-magnolia-50 focus:outline-none focus:ring-2 focus:ring-bonfire-500"
-                  placeholder="name@example.com"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">Password</label>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-magnolia-300 dark:border-blackswarm-600 bg-white dark:bg-blackswarm-700 text-blackswarm-900 dark:text-magnolia-50 focus:outline-none focus:ring-2 focus:ring-bonfire-500"
-                  placeholder="Set a password"
-                  required
-                />
-                <p className="mt-1 text-xs text-blackswarm-500 dark:text-magnolia-400">Minimum 6 characters.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">Phone</label>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-magnolia-300 dark:border-blackswarm-600 bg-white dark:bg-blackswarm-700 text-blackswarm-900 dark:text-magnolia-50 focus:outline-none focus:ring-2 focus:ring-bonfire-500"
-                  placeholder="e.g., +63 900 123 4567"
-                />
-              </div>
-              {registerError && (
-                <div className="text-sm text-red-600 dark:text-red-400">{registerError}</div>
-              )}
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowRegister(false)}
-                  className="px-4 py-2 rounded-lg border border-magnolia-300 dark:border-blackswarm-600 text-blackswarm-700 dark:text-magnolia-300 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={registerLoading}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-bonfire-500 to-embers-500 text-white disabled:opacity-60"
-                >
-                  {registerLoading ? 'Registering…' : 'Register'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Register Participant Modal removed */}
     </div>
   );
 };

@@ -186,7 +186,7 @@ const JoinRaffles = () => {
             <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
               <div className="flex items-center">
                 <Ticket className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
-                <span className="text-gray-600 dark:text-gray-400">Price: ${raffle.ticket_price}</span>
+                <span className="text-gray-600 dark:text-gray-400">Price: ₱{raffle.ticket_price}</span>
               </div>
               <div className="flex items-center">
                 <Users className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
@@ -233,7 +233,7 @@ const JoinRaffles = () => {
                 {selectedRaffle.title}
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Ticket Price: ${selectedRaffle.ticket_price}
+                Ticket Price: ₱{selectedRaffle.ticket_price}
               </p>
             </div>
 
@@ -309,7 +309,7 @@ const JoinRaffles = () => {
                   disabled={!ticketNumber || ticketNumber.length !== 6}
                   className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {joining ? 'Joining…' : `Join for $${selectedRaffle.ticket_price}`}
+                  {joining ? 'Joining…' : `Join for ₱${selectedRaffle.ticket_price}`}
                 </button>
               </div>
             </div>

@@ -3,12 +3,16 @@ import { Trophy, Calendar, Ticket, Users, Search, Filter } from 'lucide-react';
 import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
+import winnerAds from '../../images/winnerads.png';
+import PopupAds from '../PopupAds';
 
 const PastResults = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalParticipants, setTotalParticipants] = useState(null);
+  const [showAd, setShowAd] = useState(false);
 
   const location = useLocation();
   const categories = ['all', 'Electronics', 'Gaming', 'Luxury', 'Fashion', 'Home'];
@@ -39,6 +43,28 @@ const PastResults = () => {
     fetchResults();
   }, [location.search]);
 
+  // Fetch total participants from app_users (row count)
+  useEffect(() => {
+    const fetchParticipants = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('app_users')
+          .select('*', { count: 'exact', head: true });
+        if (error) throw error;
+        setTotalParticipants(typeof count === 'number' ? count : 0);
+      } catch (e) {
+        setTotalParticipants(0);
+        // Optional: console.warn('Failed to load participants count', e);
+      }
+    };
+    fetchParticipants();
+  }, []);
+
+  // Always show popup ad when this page is opened
+  useEffect(() => {
+    setShowAd(true);
+  }, []);
+
   const filteredRaffles = results.filter((raffle) => {
     const matchesSearch = (raffle.title || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || raffle.category === selectedCategory;
@@ -55,6 +81,8 @@ const PastResults = () => {
 
   return (
     <div className="space-y-6">
+      {/* Popup Ad using shared component for consistent design */}
+      <PopupAds open={showAd} onClose={() => setShowAd(false)} images={[winnerAds]} />
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Past Raffle Results</h1>
@@ -212,7 +240,7 @@ const PastResults = () => {
             <div className="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Users className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">—</h3>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{(totalParticipants ?? 0).toLocaleString()}</h3>
             <p className="text-gray-600 dark:text-gray-400 font-medium">Total Participants</p>
           </div>
           

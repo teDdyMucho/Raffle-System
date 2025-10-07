@@ -71,7 +71,8 @@ export const AuthProvider = ({ children }) => {
   const signUp = async ({ email, password, role = 'user', name = '', phone = '', location = '' }) => {
     try {
       const cleanEmail = (email || '').trim();
-      const cleanRole = (role === 'agent' ? 'agent' : 'user');
+      // Enforce that only regular users can sign up via the public form
+      const cleanRole = 'user';
       if (!cleanEmail || !password) {
         throw new Error('Email and password are required');
       }

@@ -6,6 +6,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import ToastContainer from './components/UI/ToastContainer';
 import Login from './components/Auth/Login';
+import SignUp from './components/Auth/SignUp';
 import UserLanding from './components/User/UserLanding';
 import JoinRaffles from './components/User/JoinRaffles';
 import PastResults from './components/User/PastResults';
@@ -65,6 +66,7 @@ function AppRoutes() {
     <Routes>
       {/* Public */}
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<SignUp />} />
 
       {/* User routes */}
       <Route

@@ -47,16 +47,7 @@ const Login = () => {
     }
   };
 
-  const demoCredentials = [
-    { email: 'user@raffle.com', password: 'user123', role: 'user', name: 'Demo User' },
-    { email: 'agent@raffle.com', password: 'agent123', role: 'agent', name: 'Demo Agent' }
-  ];
-
-  const fillDemo = (demo) => {
-    setEmail(demo.email);
-    setPassword(demo.password);
-    setRole(demo.role);
-  };
+  // Demo credentials removed for production
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-magnolia-50 to-magnolia-100 dark:from-blackswarm-900 dark:to-blackswarm-800 flex items-center justify-center p-4 relative">
@@ -85,24 +76,7 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Demo Credentials */}
-        <div className="bg-bonfire-50 dark:bg-bonfire-900/20 border border-bonfire-200 dark:border-bonfire-800 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-bonfire-800 dark:text-bonfire-200 mb-2">Demo Credentials:</h3>
-          <div className="space-y-2">
-            {demoCredentials.map((demo, index) => (
-              <button
-                key={index}
-                onClick={() => fillDemo(demo)}
-                className="w-full text-left text-xs bg-magnolia-50 dark:bg-blackswarm-800 border border-bonfire-200 dark:border-bonfire-700 rounded px-3 py-2 hover:bg-bonfire-50 dark:hover:bg-bonfire-900/30 transition-colors"
-              >
-                <div className="flex justify-between items-center">
-                  <span className="text-blackswarm-700 dark:text-magnolia-300">{demo.email}</span>
-                  <span className="text-bonfire-600 dark:text-bonfire-400 font-medium capitalize">{demo.role}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Demo credentials UI removed */}
 
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

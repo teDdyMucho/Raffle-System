@@ -142,7 +142,7 @@ const AdminOverview = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.totalRevenue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">₱{stats.totalRevenue.toLocaleString()}</p>
             </div>
             <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full">
               <DollarSign className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -187,7 +187,7 @@ const AdminOverview = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                        ${raffle.revenue.toLocaleString()}
+                        ₱{raffle.revenue.toLocaleString()}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>
                     </div>

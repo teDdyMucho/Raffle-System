@@ -321,7 +321,7 @@ const RaffleManagement = () => {
                   <Users className="w-4 h-4 text-gray-500 mr-1" />
                 </div>
                 <p className="text-gray-600 dark:text-gray-400 mb-1">Ticket Price</p>
-                <p className="font-semibold text-gray-900 dark:text-white">${raffle.ticket_price}</p>
+                <p className="font-semibold text-gray-900 dark:text-white">₱{raffle.ticket_price}</p>
               </div>
             </div>
 
@@ -499,7 +499,7 @@ const RaffleManagement = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Ticket Price ($)
+                    Ticket Price (₱)
                   </label>
                   <input
                     type="number"

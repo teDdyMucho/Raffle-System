@@ -140,7 +140,7 @@ const UserProfile = () => {
     ];
     for (const v of centsCandidates) {
       const n = toNumber(v);
-      if (!Number.isNaN(n) && Number.isFinite(n)) return `$${fromCents(n)}`;
+      if (!Number.isNaN(n) && Number.isFinite(n)) return `₱${fromCents(n)}`;
     }
     const numCandidates = [
       raffleObj.ticket_price,
@@ -158,19 +158,19 @@ const UserProfile = () => {
     ];
     for (const v of numCandidates) {
       const n = toNumber(v);
-      if (!Number.isNaN(n) && Number.isFinite(n)) return `$${n.toFixed(2)}`;
+      if (!Number.isNaN(n) && Number.isFinite(n)) return `₱${n.toFixed(2)}`;
     }
     // Last resort: scan any key with price/amount/cost
     const scan = (obj) => {
       for (const k of Object.keys(obj || {})) {
         if (/price|amount|cost/i.test(k)) {
           const n = toNumber(obj[k]);
-          if (!Number.isNaN(n) && Number.isFinite(n)) return `$${n.toFixed(2)}`;
+          if (!Number.isNaN(n) && Number.isFinite(n)) return `₱${n.toFixed(2)}`;
         }
       }
       return null;
     };
-    return scan(raffleObj) || scan(ticketObj) || '$—';
+    return scan(raffleObj) || scan(ticketObj) || '₱—';
   };
 
   // Resolve a price expressed in cents if possible
@@ -433,24 +433,17 @@ const UserProfile = () => {
           console.warn('[Profile] ticket fetch warning:', tErr?.message || tErr);
         }
 
-        // Dev fallback: if no tickets found by filters, fetch recent tickets to validate read access
-        if ((tickets?.length || 0) === 0 && process.env.NODE_ENV !== 'production') {
-          try {
-            const probe = await supabase
-              .from('tickets')
-              .select('*')
-              .order('created_at', { ascending: false })
-              .limit(20);
-            // eslint-disable-next-line no-console
-            console.log('[Profile] probe tickets count:', probe.data?.length || 0);
-            if (Array.isArray(probe.data) && probe.data.length > 0) {
-              tickets = probe.data;
-            }
-          } catch (probeErr) {
-            // eslint-disable-next-line no-console
-            console.warn('[Profile] probe tickets failed:', probeErr?.message || probeErr);
-          }
-        }
+        // Note: Do not load tickets from other users. If no tickets are found
+        // for this account, simply display an empty list. The previous dev-only
+        // fallback that loaded recent tickets has been removed to preserve privacy.
+
+        // Strong filter: ensure we only keep tickets that belong to the current user
+        const lowerEmail = (email || '').toLowerCase();
+        tickets = (tickets || []).filter(t => {
+          const byId = uid && t.user_id === uid;
+          const byEmail = t.user_email && String(t.user_email).toLowerCase() === lowerEmail;
+          return byId || byEmail;
+        });
 
         const ids = Array.from(new Set((tickets || []).map(t => t.raffle_id).filter(Boolean)));
         let raffleMap = new Map();
@@ -485,14 +478,18 @@ const UserProfile = () => {
               const r = raffleMap.get(String(t.raffle_id)) || {};
               const needsPrice = (t.price_cents == null && t.ticket_price_cents == null && t.price == null && t.ticket_price == null);
               const priceCents = needsPrice ? resolvePriceCents(r, t) : null;
+              // Only repair tickets that clearly belong to the current user
+              const owned = (uid && t.user_id === uid) || (t.user_email && String(t.user_email).toLowerCase() === lowerEmail);
               const patch = {};
-              if (needsPrice && priceCents != null) {
+              if (owned && needsPrice && priceCents != null) {
                 patch.price_cents = priceCents;
                 patch.price = Number((priceCents / 100).toFixed(2));
               }
-              if (!t.user_id && user?.id) patch.user_id = user.id;
-              if (!t.user_email && user?.email) patch.user_email = user.email;
-              if (!t.user_name && (editedUser?.name || user?.name)) patch.user_name = editedUser?.name || user?.name;
+              if (owned) {
+                if (!t.user_id && uid) patch.user_id = uid;
+                if (!t.user_email && email) patch.user_email = email;
+                if (!t.user_name && (editedUser?.name || user?.name)) patch.user_name = editedUser?.name || user?.name;
+              }
               if (Object.keys(patch).length > 0) {
                 updates.push({ id: t.id, patch });
               }
@@ -536,10 +533,10 @@ const UserProfile = () => {
           const result = (isCompleted && r.winner && (r.winner === t.user_name || r.winner === t.user_email)) ? 'won' : (isCompleted ? 'lost' : '');
           // Compute display prize with immediate fallback
           let prizeDisplay = resolvePriceDisplay(r, t);
-          if (prizeDisplay === '$—') {
+          if (prizeDisplay === '₱—') {
             const pc = resolvePriceCents(r, t);
-            if (pc != null) prizeDisplay = `$${fromCents(pc)}`;
-            if (prizeDisplay === '$—') {
+            if (pc != null) prizeDisplay = `₱${fromCents(pc)}`;
+            if (prizeDisplay === '₱—') {
               // eslint-disable-next-line no-console
               console.warn('[Profile] Prize still missing for ticket', t.id, { raffle: r, ticket: t });
             }
@@ -571,7 +568,7 @@ const UserProfile = () => {
             ticketNumber: t.ticket_number,
             purchaseDate: t.created_at || new Date().toISOString(),
             status: 'active',
-            prize: '$—',
+            prize: '₱—',
             endDate: null,
             result: 'lost',
             imageUrl: '',
@@ -724,9 +721,9 @@ const UserProfile = () => {
             
             <div className="card text-center h-28 flex flex-col items-center justify-center gap-2">
               <div className="bg-green-100 dark:bg-green-900/30 w-10 h-10 rounded-full flex items-center justify-center">
-                <span className="text-green-600 dark:text-green-400 font-bold text-base">$</span>
+                <span className="text-green-600 dark:text-green-400 font-bold text-base">₱</span>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">${stats.totalSpent}</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">₱{stats.totalSpent}</h3>
               <p className="text-xs text-gray-600 dark:text-gray-400">Total Spent</p>
             </div>
             
@@ -734,7 +731,7 @@ const UserProfile = () => {
               <div className="bg-purple-100 dark:bg-purple-900/30 w-10 h-10 rounded-full flex items-center justify-center">
                 <WalletIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">${fromCents(balanceCents)}</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">₱{fromCents(balanceCents)}</h3>
               <p className="text-xs text-gray-600 dark:text-gray-400">Balance</p>
             </div>
           </div>
@@ -809,7 +806,7 @@ const UserProfile = () => {
                                 <span className={`px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm ${getStatusColor(ticket.status, ticket.result)}`}>
                                   {getStatusText(ticket.status, ticket.result)}
                                 </span>
-                                {ticket.prize && ticket.prize !== '$—' && (
+                                {ticket.prize && ticket.prize !== '₱—' && (
                                   <p className="text-sm font-bold text-gray-900 dark:text-white mt-1">{ticket.prize}</p>
                                 )}
                               </div>
@@ -876,7 +873,7 @@ const UserProfile = () => {
             
             <div className="mb-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">Current balance</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${fromCents(balanceCents)}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">₱{fromCents(balanceCents)}</p>
             </div>
             
             <form onSubmit={(e) => {
@@ -909,13 +906,13 @@ const UserProfile = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reference</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Referal Code</label>
                 <input
                   type="text"
                   value={cashInForm.reference}
                   onChange={(e) => setCashInForm({ ...cashInForm, reference: e.target.value })}
                   className="input-field"
-                  placeholder="Optional payment reference"
+                  placeholder="Agent Referral Code"
                 />
               </div>
               
@@ -927,7 +924,7 @@ const UserProfile = () => {
                     {cashIns.map((r) => (
                       <div key={r.id} className="flex items-center justify-between text-sm border border-gray-200 dark:border-gray-700 rounded px-3 py-2">
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">${fromCents(r.amount_cents)} • {r.method}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">₱{fromCents(r.amount_cents)} • {r.method}</p>
                           <p className="text-xs text-gray-500">{new Date(r.created_at).toLocaleString()}</p>
                         </div>
                         <span className={`px-2 py-1 rounded-full text-xs capitalize ${r.status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : r.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>{r.status}</span>
