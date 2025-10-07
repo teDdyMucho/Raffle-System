@@ -4,7 +4,7 @@ import cashinAd from '../../images/cashinads.png';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, Ticket, Trophy, Calendar, Edit3, Save, X, Plus, Wallet as WalletIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
-import { requestCashIn, listCashIns, getUserBalanceCents, getApprovedCashInTotalCents, fromCents } from '../../lib/wallet';
+import { requestCashIn, listCashIns, getUserBalanceCents, getApprovedCashInTotalCents, fromCents, getFixedReferralCode } from '../../lib/wallet';
 
 const UserProfile = () => {
   const { user, updateProfile } = useAuth();
@@ -28,8 +28,9 @@ const UserProfile = () => {
   const [balanceCents, setBalanceCents] = useState(0);
   const [walletLoading, setWalletLoading] = useState(true);
   const [cashIns, setCashIns] = useState([]);
-  const [cashInForm, setCashInForm] = useState({ amount: '', method: 'gcash', reference: '' });
+  const [cashInForm, setCashInForm] = useState({ amount: '', method: 'gcash', referral_code: '' });
   const [showCashInModal, setShowCashInModal] = useState(false);
+  const [referralLocked, setReferralLocked] = useState(false);
   const ticketsContainerRef = useRef(null);
 
   // Profile popup ads
@@ -338,15 +339,25 @@ const UserProfile = () => {
       const amountNum = Number(cashInForm.amount);
       if (!Number.isFinite(amountNum) || amountNum <= 0) throw new Error('Enter a valid amount');
 
+      // Resolve locked code (if any) and validate first-time code
+      let referralToUse = cashInForm.referral_code ? String(cashInForm.referral_code).trim() : '';
+      const fixed = await getFixedReferralCode(uid);
+      if (fixed?.code) {
+        referralToUse = fixed.code; // enforce locked code on all future cash-ins
+      } else {
+        // First-time: require a code but rely on server-side validation
+        if (!referralToUse) throw new Error('Please enter a referral code');
+      }
+
       const { success, error } = await requestCashIn(
         uid,
         amountNum,
         cashInForm.method,
-        { reference: cashInForm.reference }
+        { referral_code: referralToUse }
       );
       if (!success) throw new Error(error || 'Failed to submit');
       alert('Cash-in request submitted for review');
-      setCashInForm({ amount: '', method: 'gcash', reference: '' });
+      setCashInForm({ amount: '', method: 'gcash', referral_code: referralToUse });
       // refresh list
       const listRes = await listCashIns(uid, { limit: 5 });
       if (listRes.success) setCashIns(listRes.data || []);
@@ -354,6 +365,25 @@ const UserProfile = () => {
       alert(err.message || String(err));
     }
   };
+
+  // When opening the Cash In modal, prefill and lock referral code if already fixed
+  useEffect(() => {
+    const prepareReferral = async () => {
+      try {
+        if (!showCashInModal || !user?.id) return;
+        const fixed = await getFixedReferralCode(user.id);
+        if (fixed?.code) {
+          setCashInForm(prev => ({ ...prev, referral_code: fixed.code }));
+          setReferralLocked(true);
+        } else {
+          setReferralLocked(false);
+        }
+      } catch (_) {
+        setReferralLocked(false);
+      }
+    };
+    prepareReferral();
+  }, [showCashInModal, user?.id]);
 
   // Fetch detailed ticket history
   useEffect(() => {
@@ -909,11 +939,15 @@ const UserProfile = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Referal Code</label>
                 <input
                   type="text"
-                  value={cashInForm.reference}
-                  onChange={(e) => setCashInForm({ ...cashInForm, reference: e.target.value })}
-                  className="input-field"
+                  value={cashInForm.referral_code}
+                  onChange={(e) => setCashInForm({ ...cashInForm, referral_code: e.target.value })}
+                  className={`input-field ${referralLocked ? 'opacity-80 cursor-not-allowed' : ''}`}
                   placeholder="Agent Referral Code"
+                  disabled={referralLocked}
                 />
+                {referralLocked && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Your referral code is locked after your first approved cash-in.</p>
+                )}
               </div>
               
               {/* Recent Requests */}

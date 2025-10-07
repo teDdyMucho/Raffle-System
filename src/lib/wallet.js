@@ -12,25 +12,16 @@ import { supabase } from './supabaseClient';
  *     method (text)           // e.g., 'gcash', 'bank', 'paypal'
  *     meta (jsonb)            // optional details like reference number, screenshot URL, etc.
  *     status (text)           // 'pending' | 'approved' | 'rejected'
- *     created_at (timestamptz)
  *     reviewed_at (timestamptz, nullable)
  *     reviewer_id (uuid, nullable)
  *
  * - Optional balance column in app_users:
  *   app_users.balance_cents (int8)
- */
-
-/**
- * Create a cash-in request for manual/admin review.
- * Does NOT change user balance directly.
  *
- * @param {string} userId - The requesting user's id
- * @param {number} amount - Amount in the user's currency (e.g., 123.45)
- * @param {string} method - Payment method label
- * @param {object} meta - Optional metadata (reference number, proof image path, etc.)
- * @returns {Promise<{success: boolean, data?: any, error?: string}>}
+ * - Referral:
+ *   app_users.referal_code: the agent's public referral code (spelling kept as in DB)
+ *   app_users.referred_by_code (optional): the fixed referral code chosen by the user after first approved cash-in
  */
-
 /**
  * Credit user's balance by amount_cents. Returns new balance on success.
  */
@@ -85,6 +76,99 @@ export async function tryDebitForPurchase(userId, amount_cents) {
     return { success: false, error: err.message || String(err) };
   }
 }
+/**
+ * Validate a referral code against app_users.referal_code. Returns the agent user row if found.
+ */
+export async function validateReferralCode(code) {
+  try {
+    const clean = (code || '').trim();
+    if (!clean) return { success: false, error: 'Missing referral code' };
+
+    let { data, error } = await supabase
+      .from('app_users')
+      .select('id, referal_code, role')
+      .eq('referal_code', clean)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      // Fallback to case-insensitive match if referal_code is not unique/case-sensitive
+      const r = await supabase
+        .from('app_users')
+        .select('id, referal_code, role')
+        .ilike('referal_code', clean);
+      data = Array.isArray(r.data) && r.data[0] ? r.data[0] : null;
+      if (r.error) throw r.error;
+    }
+    if (!data) return { success: false, error: 'Invalid referral code' };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message || String(err) };
+  }
+}
+
+/**
+ * Resolve the user's fixed referral code.
+ * Priority: app_users.referred_by_code -> first approved cash-in's meta.referral_code -> null
+ */
+export async function getFixedReferralCode(userId) {
+  try {
+    if (!userId) throw new Error('Missing userId');
+
+    // 1) Try stored on user row
+    try {
+      const { data: userRow, error: userErr } = await supabase
+        .from('app_users')
+        .select('referred_by_code')
+        .eq('id', userId)
+        .maybeSingle();
+      if (!userErr) {
+        const fixed = (userRow?.referred_by_code || '').trim();
+        if (fixed) return { success: true, code: fixed };
+      }
+    } catch (_) {
+      // Column may not exist; ignore
+    }
+
+    // 2) Fall back to earliest approved cash-in meta.referral_code
+    let first = null;
+    try {
+      const { data, error } = await supabase
+        .from('user_wallet')
+        .select('meta, referal_code, referral_code, created_at')
+        .eq('user_id', userId)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: true })
+        .limit(1);
+      if (error) throw error;
+      first = Array.isArray(data) && data[0] ? data[0] : null;
+    } catch (selErr) {
+      // If meta column does not exist, fall back without reading meta
+      const msg = String(selErr.message || '').toLowerCase();
+      if (/column\s+"?meta"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+meta\s+column/i.test(msg)) {
+        const { data } = await supabase
+          .from('user_wallet')
+          .select('referal_code, referral_code, created_at')
+          .eq('user_id', userId)
+          .eq('status', 'approved')
+          .order('created_at', { ascending: true })
+          .limit(1);
+        first = Array.isArray(data) && data[0] ? data[0] : null;
+      } else {
+        throw selErr;
+      }
+    }
+    const codeFromMeta = first?.meta?.referral_code
+      ? String(first.meta.referral_code).trim()
+      : (first?.meta?.referal_code ? String(first.meta.referal_code).trim() : '');
+    const codeTop = first?.referral_code ? String(first.referral_code).trim() : (first?.referal_code ? String(first.referal_code).trim() : '');
+    const code = codeFromMeta || codeTop || '';
+    if (code) return { success: true, code };
+    return { success: true, code: null };
+  } catch (err) {
+    return { success: false, error: err.message || String(err), code: null };
+  }
+}
+
 export async function requestCashIn(userId, amount, method = 'gcash', meta = {}) {
   try {
     if (!userId) throw new Error('Missing userId');
@@ -93,28 +177,95 @@ export async function requestCashIn(userId, amount, method = 'gcash', meta = {})
 
     const amount_cents = Math.round(num * 100);
 
+    // Enforce referral code rules:
+    // If the user already has a fixed code (via user field or first approved cash-in), force it.
+    // Otherwise, if a referral_code is provided in meta, validate it against app_users.referal_code.
+    // If not provided, allow request without, but UI should require it for the first time.
+    let referralToUse = null;
+    let agentId = null;
+    try {
+      const fixed = await getFixedReferralCode(userId);
+      if (fixed?.code) {
+        referralToUse = fixed.code;
+      } else if (meta && meta.referral_code) {
+        const v = await validateReferralCode(meta.referral_code);
+        if (!v.success) throw new Error(v.error || 'Invalid referral code');
+        referralToUse = String(meta.referral_code).trim();
+        agentId = v.data?.id || null;
+      }
+      // Ensure agent_id is resolved when we have a code (even if fixed)
+      if (referralToUse && !agentId) {
+        try {
+          const v2 = await validateReferralCode(referralToUse);
+          if (v2?.success && v2.data?.id) agentId = v2.data.id;
+        } catch (_) { /* ignore; DB may still accept by code only */ }
+      }
+    } catch (refErr) {
+      // Surface referral validation errors
+      throw refErr;
+    }
+
     const payload = {
       user_id: userId,
       amount_cents,
       method,
-      meta,
+      meta: {
+        ...meta,
+        // Write both spellings to be compatible with any triggers/functions expecting a specific key
+        referral_code: referralToUse || null,
+        referal_code: referralToUse || null,
+        agent_id: agentId || null,
+      },
+      // Also provide top-level keys for schemas that expect columns
+      referral_code: referralToUse || null,
+      referal_code: referralToUse || null,
+      agent_id: agentId || null,
       status: 'pending',
       created_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
-      .from('user_wallet')
-      .insert([payload])
-      .select('*')
-      .single();
+    let data, error;
+    try {
+      ({ data, error } = await supabase
+        .from('user_wallet')
+        .insert([payload])
+        .select('*')
+        .single());
+      if (error) throw error;
+    } catch (insErr) {
+      // If meta column is missing, retry without meta
+      const msg = String(insErr.message || '').toLowerCase();
+      const stripAndRetry = async (prevPayload, keyRegex) => {
+        const keys = Object.keys(prevPayload).filter(k => keyRegex.test(k));
+        const next = { ...prevPayload };
+        for (const k of keys) delete next[k];
+        const { data: d2, error: e2 } = await supabase
+          .from('user_wallet')
+          .insert([next])
+          .select('*')
+          .single();
+        if (e2) throw e2;
+        return d2;
+      };
 
-    if (error) throw error;
+      if (/column\s+"?meta"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+meta\s+column/i.test(msg)) {
+        data = await stripAndRetry(payload, /^(meta)$/);
+      } else if (/column\s+"?referal_code"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+referal_code\s+column/i.test(msg)) {
+        data = await stripAndRetry(payload, /^(referal_code)$/);
+      } else if (/column\s+"?referral_code"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+referral_code\s+column/i.test(msg)) {
+        data = await stripAndRetry(payload, /^(referral_code)$/);
+      } else if (/column\s+"?agent_id"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+agent_id\s+column/i.test(msg)) {
+        data = await stripAndRetry(payload, /^(agent_id)$/);
+      } else {
+        throw insErr;
+      }
+    }
+
     return { success: true, data };
   } catch (err) {
     return { success: false, error: err.message || String(err) };
   }
 }
-
 /**
  * List cash-in requests for a user.
  *
