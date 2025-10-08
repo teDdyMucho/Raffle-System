@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import ImageWithFallback from '../common/ImageWithFallback';
+import appLogo from '../../images/allen (1).png';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { 
@@ -7,9 +9,6 @@ import {
   Sun, 
   Moon, 
   BarChart3, 
-  Users, 
-  Headphones,
-  TrendingUp,
   DollarSign,
   User,
   LogOut,
@@ -18,14 +17,11 @@ import {
 
 const AgentHeader = ({ currentPage, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'user-support', label: 'User Support', icon: Headphones },
-    { id: 'insights', label: 'Insights', icon: TrendingUp },
     { id: 'commission', label: 'Commission Tracker', icon: DollarSign },
   ];
   const visibleMd = navigationItems.slice(0, 3);
@@ -34,13 +30,11 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
 
   const handleLogout = () => {
     logout();
-    setIsProfileDropdownOpen(false);
   };
 
   const handleNavigation = (pageId) => {
     onNavigate(pageId);
     setIsMobileMenuOpen(false);
-    setIsProfileDropdownOpen(false);
   };
 
   return (
@@ -50,12 +44,8 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 mr-6">
             <div className="flex-shrink-0 flex items-center">
-              <div className="h-8 w-8 bg-gradient-to-r from-bonfire-500 to-embers-500 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-sm">🎟️</span>
-              </div>
-              <h1 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50">
-                Raffle Agent
-              </h1>
+              <ImageWithFallback src={appLogo} alt="Raffle Haven" className="h-12 w-12 mr-3 rounded" />
+              <h1 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50">Raffle Haven</h1>
             </div>
           </div>
 
@@ -134,8 +124,8 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
           </div>
           </nav>
 
-          {/* Right side - Theme toggle and Profile */}
-          <div className="flex items-center space-x-6 flex-shrink-0 ml-4">
+          {/* Right side - Theme toggle and inline actions */}
+          <div className="flex items-center space-x-4 flex-shrink-0 ml-4">
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -143,56 +133,29 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            {/* Profile Dropdown */}
-            <div className="relative">
+            {/* Inline actions (desktop) */}
+            <div className="hidden md:flex items-center space-x-2">
               <button
-                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                className="flex items-center space-x-3 p-2 rounded-md hover:bg-magnolia-100 dark:hover:bg-blackswarm-700 transition-colors"
+                onClick={() => handleNavigation('profile')}
+                className="flex items-center px-3 py-2 rounded-md text-sm text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-bonfire-400 to-embers-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {user?.name?.charAt(0) || 'A'}
-                  </span>
-                </div>
-                <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-blackswarm-900 dark:text-magnolia-50">
-                    {user?.name || 'Agent'}
-                  </p>
-                  <p className="text-xs text-blackswarm-500 dark:text-magnolia-400">
-                    Agent
-                  </p>
-                </div>
+                <User className="w-4 h-4 mr-2" />
+                Profile
               </button>
-
-              {/* Profile Dropdown Menu */}
-              {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-magnolia-50 dark:bg-blackswarm-800 rounded-md shadow-lg border border-magnolia-200 dark:border-blackswarm-700">
-                  <div className="py-1">
-                    <button
-                      onClick={() => handleNavigation('profile')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-blackswarm-700 dark:text-magnolia-300 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
-                    >
-                      <User className="w-4 h-4 mr-3" />
-                      Profile
-                    </button>
-                    <button
-                      onClick={() => handleNavigation('settings')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-blackswarm-700 dark:text-magnolia-300 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
-                    >
-                      <Settings className="w-4 h-4 mr-3" />
-                      Settings
-                    </button>
-                    <hr className="my-1 border-magnolia-200 dark:border-blackswarm-700" />
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-bonfire-600 dark:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
-                    >
-                      <LogOut className="w-4 h-4 mr-3" />
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              )}
+              <button
+                onClick={() => handleNavigation('settings')}
+                className="flex items-center px-3 py-2 rounded-md text-sm text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center px-3 py-2 rounded-md text-sm text-bonfire-600 dark:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </button>
             </div>
 
             {/* Mobile menu button */}
@@ -226,6 +189,29 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
                   </button>
                 );
               })}
+              <div className="mt-2 pt-2 border-t border-magnolia-200 dark:border-blackswarm-700 space-y-1">
+                <button
+                  onClick={() => handleNavigation('profile')}
+                  className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
+                >
+                  <User className="w-5 h-5 mr-3" />
+                  Profile
+                </button>
+                <button
+                  onClick={() => handleNavigation('settings')}
+                  className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
+                >
+                  <Settings className="w-5 h-5 mr-3" />
+                  Settings
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-bonfire-600 dark:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
+                >
+                  <LogOut className="w-5 h-5 mr-3" />
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         )}

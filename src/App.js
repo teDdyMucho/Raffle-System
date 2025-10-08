@@ -14,6 +14,7 @@ import UserProfile from './components/User/UserProfile';
 import AgentLayout from './components/Agent/AgentLayout';
 import UserLayout from './components/User/UserLayout';
 import './index.css';
+import CopyReferral from './components/Shared/CopyReferral';
 import PopupAds from './components/PopupAds';
 
 function PopupAdsGate() {
@@ -64,6 +65,8 @@ function AppRoutes() {
 
   return (
     <Routes>
+      {/* Copy referral helper (public) */}
+      <Route path="/copy-ref" element={<CopyReferral />} />
       {/* Public */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />

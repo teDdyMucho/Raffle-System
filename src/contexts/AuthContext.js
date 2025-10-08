@@ -25,9 +25,54 @@ export const AuthProvider = ({ children }) => {
       const userData = JSON.parse(storedUser);
       setUser(userData);
       setIsAuthenticated(true);
+      // Backfill referal_code if not present in stored session
+      (async () => {
+        try {
+          if (!userData?.referal_code && userData?.id) {
+            const { data, error } = await supabase
+              .from('app_users')
+              .select('referal_code')
+              .eq('id', userData.id)
+              .maybeSingle();
+            if (!error && data && typeof data.referal_code !== 'undefined') {
+              const patched = { ...userData, referal_code: data.referal_code || '' };
+              setUser(patched);
+              localStorage.setItem('raffle_user', JSON.stringify(patched));
+            }
+          }
+        } catch (_) {
+          // ignore
+        }
+      })();
     }
     setLoading(false);
   }, []);
+
+  // Allow consumers to refresh the user object from DB (including referal_code)
+  const refreshUser = async () => {
+    try {
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('app_users')
+        .select('id, email, role, name, phone, location, referal_code')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (error || !data) return;
+      const next = {
+        ...user,
+        email: data.email,
+        role: data.role,
+        name: data.name,
+        phone: data.phone || '',
+        location: data.location || '',
+        referal_code: data.referal_code || ''
+      };
+      setUser(next);
+      localStorage.setItem('raffle_user', JSON.stringify(next));
+    } catch (_) {
+      // noop
+    }
+  };
 
   const login = async (email, password, selectedRole) => {
     try {
@@ -39,7 +84,7 @@ export const AuthProvider = ({ children }) => {
       // Fetch user by email (citext supports case-insensitive eq)
       const { data: row, error: qErr } = await supabase
         .from('app_users')
-        .select('id, email, password, role, name, phone, location, is_banned')
+        .select('id, email, password, role, name, phone, location, is_banned, referal_code')
         .eq('email', cleanEmail)
         .maybeSingle();
 
@@ -55,6 +100,7 @@ export const AuthProvider = ({ children }) => {
         name: row.name,
         phone: row.phone || '',
         location: row.location || '',
+        referal_code: row.referal_code || '',
       };
 
       // Store session
@@ -83,7 +129,7 @@ export const AuthProvider = ({ children }) => {
       const { data, error: insErr } = await supabase
         .from('app_users')
         .insert([{ email: cleanEmail, password, role: cleanRole, name: finalName, phone, location }])
-        .select('id, email, role, name, phone, location')
+        .select('id, email, role, name, phone, location, referal_code')
         .single();
 
       if (insErr) throw insErr;
@@ -95,6 +141,7 @@ export const AuthProvider = ({ children }) => {
         name: data.name,
         phone: data.phone || '',
         location: data.location || '',
+        referal_code: data.referal_code || '',
       };
 
       // Auto sign-in after signup
@@ -143,7 +190,12 @@ export const AuthProvider = ({ children }) => {
           .eq('id', user.id);
         if (!error) {
           // success
-          const newUser = { ...user, ...currentPayload };
+          const newUser = { 
+            ...user, 
+            ...currentPayload,
+            // Preserve referral code
+            referal_code: user.referal_code || ''
+          };
           setUser(newUser);
           localStorage.setItem('raffle_user', JSON.stringify(newUser));
           // Inform caller if we dropped any keys silently
@@ -183,7 +235,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     signUp,
-    updateProfile
+    updateProfile,
+    refreshUser
   };
 
   return (

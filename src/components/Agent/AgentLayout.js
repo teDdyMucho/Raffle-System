@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import AgentHeader from './AgentHeader';
 import AgentDashboard from './AgentDashboard';
 import ImageManager from './ImageManager';
+import AgentProfile from './AgentProfile';
+import AgentSettings from './AgentSettings';
+import AgentCommissionTracker from './AgentCommissionTracker';
 
 const AgentLayout = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -13,7 +16,7 @@ const AgentLayout = () => {
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <AgentDashboard />;
+        return <AgentDashboard onNavigate={handleNavigation} />;
       case 'media-library':
         return <ImageManager />;
       case 'user-support':
@@ -50,40 +53,13 @@ const AgentLayout = () => {
           </div>
         );
       case 'commission':
-        return (
-          <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-4">
-              Commission Tracker
-            </h2>
-            <p className="text-blackswarm-600 dark:text-magnolia-400">
-              Commission tracking and earnings overview coming soon...
-            </p>
-          </div>
-        );
+        return <AgentCommissionTracker />;
       case 'profile':
-        return (
-          <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-4">
-              Agent Profile
-            </h2>
-            <p className="text-blackswarm-600 dark:text-magnolia-400">
-              Profile management coming soon...
-            </p>
-          </div>
-        );
+        return <AgentProfile />;
       case 'settings':
-        return (
-          <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-4">
-              Settings
-            </h2>
-            <p className="text-blackswarm-600 dark:text-magnolia-400">
-              Agent settings and preferences coming soon...
-            </p>
-          </div>
-        );
+        return <AgentSettings />;
       default:
-        return <AgentDashboard />;
+        return <AgentDashboard onNavigate={handleNavigation} />;
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import ImageWithFallback from '../common/ImageWithFallback';
 import PopupAds from '../PopupAds';
 import cashinAd from '../../images/cashinads.png';
 import { useAuth } from '../../contexts/AuthContext';
@@ -230,6 +231,35 @@ const UserProfile = () => {
   // Live stats from Supabase tickets + raffles
   const [stats, setStats] = useState({ totalTickets: 0, totalSpent: 0 });
 
+  // Refresh wallet/balance on demand
+  const refreshWallet = async () => {
+    try {
+      setWalletLoading(true);
+      const uid = user?.id;
+      if (!uid) {
+        setBalanceCents(0);
+        setCashIns([]);
+        return;
+      }
+      const [balRes, listRes, approvedRes] = await Promise.all([
+        getUserBalanceCents(uid),
+        listCashIns(uid, { limit: 5 }),
+        getApprovedCashInTotalCents(uid)
+      ]);
+      if (balRes.success) setBalanceCents(balRes.balance_cents || 0);
+      if (listRes.success) setCashIns(listRes.data || []);
+      // Reconcile totalSpent from wallet: approved cash-ins minus current balance
+      if (approvedRes?.success && balRes?.success) {
+        const spentCents = Math.max(0, (approvedRes.total_cents || 0) - (balRes.balance_cents || 0));
+        setStats(prev => ({ ...prev, totalSpent: fromCents(spentCents) }));
+      }
+    } catch (_) {
+      // ignore; keep UI minimal
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -280,11 +310,64 @@ const UserProfile = () => {
           return;
         }
 
-        const { data: rafflesData, error: rErr } = await supabase
-          .from('raffles')
-          .select('id, ticket_price')
-          .in('id', raffleIds);
-        if (rErr) throw rErr;
+        let rafflesData = [];
+        {
+          const rA = await supabase
+            .from('raffles')
+            .select('id, ticket_price, title, name, raffle_name, raffleTitle, raffle, event_name, image_url')
+            .in('id', raffleIds);
+          if (rA.error) throw rA.error;
+          rafflesData = rA.data || [];
+        }
+        // If nothing returned, try again casting IDs to numbers (in case ids are numeric)
+        if (!rafflesData || rafflesData.length === 0) {
+          const numericIds = raffleIds
+            .map(v => {
+              const n = Number(v);
+              return Number.isFinite(n) ? n : null;
+            })
+            .filter(v => v !== null);
+          if (numericIds.length > 0) {
+            const rB = await supabase
+              .from('raffles')
+              .select('id, ticket_price, title, name, raffle_name, raffleTitle, raffle, event_name, image_url')
+              .in('id', numericIds);
+            if (!rB.error) {
+              rafflesData = rB.data || [];
+            }
+          }
+        }
+
+        // If still empty, try alternate table name `raffles_raffle` and rely on its `name` column
+        if (!rafflesData || rafflesData.length === 0) {
+          const rC = await supabase
+            .from('raffles_raffle')
+            .select('id, name')
+            .in('id', raffleIds);
+          if (!rC.error && rC.data && rC.data.length > 0) {
+            rafflesData = rC.data.map(r => ({
+              id: r.id,
+              ticket_price: 0,
+              title: null,
+              name: r.name,
+              image_url: null
+            }));
+          } else {
+            // Try numeric IDs for raffles_raffle as well
+            const numericIds = raffleIds
+              .map(v => { const n = Number(v); return Number.isFinite(n) ? n : null; })
+              .filter(v => v !== null);
+            if (numericIds.length > 0) {
+              const rD = await supabase
+                .from('raffles_raffle')
+                .select('id, name')
+                .in('id', numericIds);
+              if (!rD.error && rD.data) {
+                rafflesData = rD.data.map(r => ({ id: r.id, ticket_price: 0, title: null, name: r.name, image_url: null }));
+              }
+            }
+          }
+        }
 
         const priceMap = new Map((rafflesData || []).map(r => [String(r.id), Number(r.ticket_price) || 0]));
         const totalSpent = raffleIds.reduce((sum, rid) => sum + (counts[rid] * (priceMap.get(String(rid)) || 0)), 0);
@@ -299,36 +382,9 @@ const UserProfile = () => {
     fetchStats();
   }, [user?.email, user?.id]);
 
-  // Fetch wallet info
+  // Fetch wallet info on mount / user change
   useEffect(() => {
-    const fetchWallet = async () => {
-      try {
-        setWalletLoading(true);
-        const uid = user?.id;
-        if (!uid) {
-          setBalanceCents(0);
-          setCashIns([]);
-          return;
-        }
-        const [balRes, listRes, approvedRes] = await Promise.all([
-          getUserBalanceCents(uid),
-          listCashIns(uid, { limit: 5 }),
-          getApprovedCashInTotalCents(uid)
-        ]);
-        if (balRes.success) setBalanceCents(balRes.balance_cents || 0);
-        if (listRes.success) setCashIns(listRes.data || []);
-        // Reconcile totalSpent from wallet: approved cash-ins minus current balance
-        if (approvedRes?.success && balRes?.success) {
-          const spentCents = Math.max(0, (approvedRes.total_cents || 0) - (balRes.balance_cents || 0));
-          setStats(prev => ({ ...prev, totalSpent: fromCents(spentCents) }));
-        }
-      } catch (_) {
-        // ignore; keep UI minimal
-      } finally {
-        setWalletLoading(false);
-      }
-    };
-    fetchWallet();
+    refreshWallet();
   }, [user?.id]);
 
   const submitCashIn = async (e) => {
@@ -575,9 +631,23 @@ const UserProfile = () => {
             // eslint-disable-next-line no-console
             console.warn('[Profile] End date missing for ticket', t.id, { raffleKeys: Object.keys(r||{}), ticketKeys: Object.keys(t||{}) });
           }
+          // Choose best available raffle title/name
+          const raffleTitle = (
+            // 0) Column snapshot stored on ticket
+            t.raffle_name ||
+            // 1) Prefer names from raffles / raffles_raffle
+            r.title || r.name || r.raffle_name || r.raffleTitle || r.raffle || r.event_name ||
+            // 2) Other ticket-side fields
+            t.raffle_title || t.raffleTitle || t.raffle || t.event_name || t.title || t.eventTitle ||
+            // 3) Ticket meta fallbacks
+            (t.meta && (t.meta.raffle_title || t.meta.title || t.meta.event_name)) ||
+            // 4) Last resort
+            (`Raffle #${t.raffle_id || t.id}`)
+          );
+
           return {
             id: t.id,
-            raffleTitle: r.title || 'Raffle',
+            raffleTitle,
             ticketNumber: t.ticket_number,
             purchaseDate: t.created_at || new Date().toISOString(),
             status,
@@ -757,13 +827,19 @@ const UserProfile = () => {
               <p className="text-xs text-gray-600 dark:text-gray-400">Total Spent</p>
             </div>
             
-            <div className="card text-center h-28 flex flex-col items-center justify-center gap-2">
+            <button
+              onClick={refreshWallet}
+              disabled={walletLoading}
+              title="Click to refresh balance"
+              className={`card text-center h-28 flex flex-col items-center justify-center gap-2 transition-colors border ${walletLoading ? 'opacity-70 cursor-wait' : 'hover:bg-magnolia-100 dark:hover:bg-blackswarm-700 cursor-pointer'} 
+                border-gray-200 dark:border-gray-700`}
+            >
               <div className="bg-purple-100 dark:bg-purple-900/30 w-10 h-10 rounded-full flex items-center justify-center">
                 <WalletIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">₱{fromCents(balanceCents)}</h3>
               <p className="text-xs text-gray-600 dark:text-gray-400">Balance</p>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -819,7 +895,7 @@ const UserProfile = () => {
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex items-center gap-3">
                                 {ticket.imageUrl ? (
-                                  <img src={ticket.imageUrl} alt="raffle" className="w-12 h-12 object-cover rounded-lg shadow-sm" />
+                                  <ImageWithFallback src={ticket.imageUrl} alt="raffle" className="w-12 h-12 object-cover rounded-lg shadow-sm" />
                                 ) : (
                                   <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 flex items-center justify-center shadow-sm">
                                     <Ticket className="w-6 h-6 text-primary-600 dark:text-primary-400" />

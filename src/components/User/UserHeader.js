@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import ImageWithFallback from '../common/ImageWithFallback';
+import appLogo from '../../images/allen (1).png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -62,10 +64,8 @@ const UserHeader = () => {
         <div className="h-16 flex items-center justify-between">
           {/* Left - Logo */}
           <Link to="/user" className="flex items-center">
-            <div className="h-8 w-8 bg-gradient-to-r from-bonfire-500 to-embers-500 rounded-lg flex items-center justify-center mr-2">
-              <span className="text-white text-sm">🎟️</span>
-            </div>
-            <span className="text-lg font-bold text-blackswarm-900 dark:text-magnolia-50">Raffle System</span>
+            <ImageWithFallback src={appLogo} alt="Raffle Haven" className="h-12 w-12 mr-3 rounded" />
+            <span className="text-lg font-bold text-blackswarm-900 dark:text-magnolia-50">Raffle Haven</span>
           </Link>
 
           {/* Center - Nav (desktop) */}
@@ -198,29 +198,7 @@ const UserHeader = () => {
             </div>
           </div>
         )}
-        {/* Secondary quick-actions bar */}
-        <div className="hidden md:flex items-center justify-between py-2">
-          <div className="flex items-center gap-2">
-            <Link to="/user" className="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-bonfire-50 dark:bg-bonfire-900/20 text-bonfire-700 dark:text-bonfire-300 hover:bg-bonfire-100 dark:hover:bg-bonfire-900/30 transition-colors">
-              <Flame className="w-4 h-4 mr-1" /> Hot Raffles
-            </Link>
-            <Link to="/user/join" className="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-magnolia-100 dark:bg-blackswarm-700 text-blackswarm-800 dark:text-magnolia-200 hover:bg-magnolia-200 dark:hover:bg-blackswarm-600 transition-colors">
-              <Timer className="w-4 h-4 mr-1" /> Closing Soon
-            </Link>
-            <Link to="/user/results" className="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-magnolia-100 dark:bg-blackswarm-700 text-blackswarm-800 dark:text-magnolia-200 hover:bg-magnolia-200 dark:hover:bg-blackswarm-600 transition-colors">
-              <Sparkles className="w-4 h-4 mr-1" /> New Winners
-            </Link>
-          </div>
-          <form onSubmit={handleSearch} className="relative">
-            <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-blackswarm-400 dark:text-magnolia-400" />
-            <input
-              name="search"
-              type="text"
-              placeholder="Search raffles..."
-              className="pl-9 pr-3 py-1.5 rounded-md text-sm border border-magnolia-300 dark:border-blackswarm-600 bg-magnolia-50 dark:bg-blackswarm-700 text-blackswarm-900 dark:text-magnolia-50 focus:outline-none focus:ring-2 focus:ring-bonfire-500"
-            />
-          </form>
-        </div>
+        {/* Secondary quick-actions bar removed as requested */}
       </div>
     </header>
   );

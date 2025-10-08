@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import ImageWithFallback from '../common/ImageWithFallback';
 import { supabase } from '../../lib/supabaseClient';
 import { Upload, Trash2, Copy, RefreshCw, Image as ImageIcon, Check, PackagePlus } from 'lucide-react';
 import imagesManifest from '../../images/manifest';
@@ -181,7 +182,7 @@ const ImageManager = () => {
                   <span className="text-xs text-gray-500">{(f.metadata?.size || 0) / 1024 < 1024 ? `${Math.round((f.metadata?.size || 0)/1024)} KB` : `${(f.metadata?.size/1024/1024).toFixed(1)} MB`}</span>
                 </div>
                 <div className="aspect-video bg-gray-100 dark:bg-gray-900 rounded flex items-center justify-center overflow-hidden">
-                  <img src={getPublicUrl(f.name)} alt={f.name} className="object-cover w-full h-full" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  <ImageWithFallback src={getPublicUrl(f.name)} alt={f.name} className="object-cover w-full h-full" />
                 </div>
                 <div className="mt-3 flex items-center justify-end space-x-2">
                   <button onClick={() => handleCopy(f.name)} className="btn-secondary px-2 py-1 text-xs">

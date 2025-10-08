@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import ImageWithFallback from '../common/ImageWithFallback';
+import appLogo from '../../images/allen (1).png';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Headphones, Mail, Lock, Sun, Moon } from 'lucide-react';
@@ -65,11 +67,11 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-bonfire-500 to-embers-500 rounded-full flex items-center justify-center mb-4">
-            <span className="text-white font-bold text-2xl">🎟️</span>
+          <div className="mx-auto h-32 w-32 md:h-40 md:w-40 rounded-full overflow-hidden mb-6 shadow-xl ring-2 ring-bonfire-500/30">
+            <ImageWithFallback src={appLogo} alt="Raffle Haven" className="h-full w-full object-cover" />
           </div>
-          <h2 className="text-3xl font-bold text-blackswarm-900 dark:text-magnolia-50">
-            Raffle System
+          <h2 className="text-4xl md:text-5xl font-extrabold text-blackswarm-900 dark:text-magnolia-50">
+            Raffle Haven  
           </h2>
           <p className="mt-2 text-blackswarm-600 dark:text-magnolia-400">
             Sign in to access your account

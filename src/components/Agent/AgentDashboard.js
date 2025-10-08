@@ -8,54 +8,71 @@ import {
   Ticket, 
   Clock, 
   TrendingUp,
-  Headphones,
   Eye,
   Megaphone,
   Calendar,
   Target,
   Activity
 } from 'lucide-react';
+import AgentCommissionTracker from './AgentCommissionTracker';
 
-const AgentDashboard = () => {
+const AgentDashboard = ({ onNavigate }) => {
   const { user } = useAuth();
   const { show } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
   // Removed register participant feature
 
-  // Mock data for agent dashboard
-  const stats = [
-    {
-      title: 'Total Raffles Managed',
-      value: '12',
-      change: '+2 this week',
-      icon: BarChart3,
-      color: 'bonfire'
-    },
-    {
-      title: 'Tickets Sold Today',
-      value: '247',
-      change: '+18% from yesterday',
-      icon: Ticket,
-      color: 'embers'
-    },
-    {
-      title: 'Active Participants',
-      value: '1,834',
-      change: '+156 this month',
-      icon: Users,
-      color: 'bonfire'
-    },
-    {
-      title: 'Raffles Closing Soon',
-      value: '3',
-      change: 'Next closes in 2h',
-      icon: Clock,
-      color: 'embers'
-    }
-  ];
-
+  // Declare state first (used by stats below)
   const [activeRaffles, setActiveRaffles] = useState([]);
   const [loadingActive, setLoadingActive] = useState(true);
+  const [totalUsersCount, setTotalUsersCount] = useState(0);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
+  // Derived stats from DB (active raffles query)
+  const stats = React.useMemo(() => {
+    const activeCount = activeRaffles.length;
+    const totalTicketsActive = activeRaffles.reduce((sum, r) => sum + (Number(r.ticketsSold) || 0), 0);
+    // Total participants from DB (app_users where role='user')
+    const totalParticipants = totalUsersCount;
+    const closingSoonHrs = 24; // next 24 hours
+    const now = new Date();
+    const soonCount = activeRaffles.filter(r => {
+      const end = new Date(r.endDate);
+      const diffH = (end - now) / (1000*60*60);
+      return diffH > 0 && diffH <= closingSoonHrs;
+    }).length;
+
+    return [
+      {
+        title: 'Active Raffles',
+        value: String(activeCount),
+        change: loadingActive ? 'Loading…' : `${activeCount} active now`,
+        icon: BarChart3,
+        color: 'bonfire'
+      },
+      {
+        title: 'Tickets Sold (Active)',
+        value: totalTicketsActive.toLocaleString(),
+        change: loadingActive ? '' : 'Across active raffles',
+        icon: Ticket,
+        color: 'embers'
+      },
+      {
+        title: 'Total Participants',
+        value: totalParticipants.toLocaleString(),
+        change: loadingUsers ? 'Loading…' : 'All registered users',
+        icon: Users,
+        color: 'bonfire'
+      },
+      {
+        title: 'Raffles Closing Soon',
+        value: String(soonCount),
+        change: loadingActive ? '' : `Within ${closingSoonHrs}h`,
+        icon: Clock,
+        color: 'embers'
+      }
+    ];
+  }, [activeRaffles, loadingActive, totalUsersCount, loadingUsers]);
 
   const fetchActiveRaffles = async () => {
     try {
@@ -86,6 +103,53 @@ const AgentDashboard = () => {
     }
   };
 
+  const fetchTotalUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      // Strategy:
+      // 1) Count explicit role='user'
+      let total = 0;
+      let { count, error } = await supabase
+        .from('app_users')
+        .select('id', { count: 'exact' })
+        .eq('role', 'user')
+        .range(0, 0); // request minimal rows but get accurate count
+      if (error) throw error;
+      total = Number(count || 0);
+
+      // 2) If zero, try case-insensitive match (some DBs store 'User'/'USER')
+      if (total === 0) {
+        const { error: e2, count: c2 } = await supabase
+          .from('app_users')
+          .select('id', { count: 'exact' })
+          .ilike('role', 'user')
+          .range(0, 0);
+        if (!e2 && (typeof c2 === 'number')) {
+          total = Number(c2 || 0);
+        }
+      }
+
+      // 3) Fallback: exclude agents (still excludes agents even if admin exists)
+      if (total === 0) {
+        const { count: c3, error: e3 } = await supabase
+          .from('app_users')
+          .select('id', { count: 'exact' })
+          .neq('role', 'agent')
+          .range(0, 0);
+        if (!e3 && typeof c3 === 'number') {
+          total = Number(c3 || 0);
+        }
+      }
+
+      setTotalUsersCount(total);
+    } catch (e) {
+      console.warn('[AgentDashboard] failed to count users:', e?.message || e);
+      setTotalUsersCount(0);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -96,6 +160,7 @@ const AgentDashboard = () => {
 
   useEffect(() => {
     fetchActiveRaffles();
+    fetchTotalUsers();
   }, []);
 
   const getTimeRemaining = (endDate) => {
@@ -141,14 +206,31 @@ const AgentDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-bonfire-500 to-embers-500 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">
-          Welcome back, {user?.name || 'Agent'}! 👋
-        </h1>
-        <p className="text-bonfire-100">
-          Here's what's happening with your raffles today.
-        </p>
+      {/* Welcome + Quick Actions Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gradient-to-r from-bonfire-500 to-embers-500 rounded-lg p-6 text-white">
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome back, {user?.name || 'Agent'}! 👋
+          </h1>
+          <p className="text-bonfire-100">
+            Here's what's happening with your raffles today.
+          </p>
+        </div>
+        <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-4 flex items-center">
+            <Target className="w-5 h-5 mr-2 text-bonfire-500" />
+            Quick Actions
+          </h2>
+          <div className="space-y-3">
+            <button
+              onClick={() => onNavigate && onNavigate('commission')}
+              className="w-full flex items-center justify-center px-4 py-3 border-2 border-bonfire-500 text-bonfire-600 dark:text-bonfire-400 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-all duration-200"
+            >
+              <span className="mr-2 inline-flex items-center justify-center w-5 h-5 font-semibold" aria-label="Philippine Peso">₱</span>
+              Commission Tracker
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -182,9 +264,9 @@ const AgentDashboard = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Raffles Section */}
-        <div className="lg:col-span-2">
+        <div>
           <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50 flex items-center">
@@ -261,70 +343,10 @@ const AgentDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions & Insights */}
+        {/* Quick Actions & Commission Tracker */}
         <div className="space-y-6">
-          {/* Quick Actions */}
-          <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-4 flex items-center">
-              <Target className="w-5 h-5 mr-2 text-bonfire-500" />
-              Quick Actions
-            </h2>
-            <div className="space-y-3">
-              <button
-                onClick={() => show('Opening support tools (coming soon).', { type: 'info' })}
-                className="w-full flex items-center justify-center px-4 py-3 border-2 border-bonfire-500 text-bonfire-600 dark:text-bonfire-400 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-all duration-200"
-              >
-                <Headphones className="w-5 h-5 mr-2" />
-                Assist User
-              </button>
-            </div>
-          </div>
-
-          {/* Insights Preview */}
-          <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-4 flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-bonfire-500" />
-              Insights Preview
-            </h2>
-            
-            {/* Mock Chart Placeholder */}
-            <div className="bg-magnolia-100 dark:bg-blackswarm-700 rounded-lg p-4 mb-4">
-              <div className="flex items-end justify-between h-24">
-                {[40, 65, 45, 80, 55, 70, 85].map((height, index) => (
-                  <div
-                    key={index}
-                    className="bg-gradient-to-t from-bonfire-500 to-embers-500 rounded-t"
-                    style={{ height: `${height}%`, width: '12%' }}
-                  ></div>
-                ))}
-              </div>
-              <p className="text-xs text-blackswarm-500 dark:text-magnolia-400 mt-2 text-center">
-                Participation trends (last 7 days)
-              </p>
-            </div>
-
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-blackswarm-600 dark:text-magnolia-400">Peak participation:</span>
-                <span className="font-medium text-blackswarm-900 dark:text-magnolia-50">2-4 PM</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-blackswarm-600 dark:text-magnolia-400">Top category:</span>
-                <span className="font-medium text-blackswarm-900 dark:text-magnolia-50">Electronics</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-blackswarm-600 dark:text-magnolia-400">Avg. tickets/user:</span>
-                <span className="font-medium text-blackswarm-900 dark:text-magnolia-50">2.4</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => show('Navigating to full insights (coming soon).', { type: 'info' })}
-              className="w-full mt-4 px-4 py-2 text-sm text-bonfire-600 dark:text-bonfire-400 border border-bonfire-500 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-colors"
-            >
-              View Full Insights
-            </button>
-          </div>
+          {/* Commission Tracker card */}
+          <AgentCommissionTracker />
         </div>
       </div>
       {/* Register Participant Modal removed */}
