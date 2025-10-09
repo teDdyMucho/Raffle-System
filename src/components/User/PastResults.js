@@ -20,6 +20,12 @@ const PastResults = () => {
   const [showWinnersModal, setShowWinnersModal] = useState(false);
   const [myWins, setMyWins] = useState([]);
   const { user } = useAuth();
+  // Per-raffle winners modal state
+  const [showRaffleWinners, setShowRaffleWinners] = useState(false);
+  const [raffleWinnersLoading, setRaffleWinnersLoading] = useState(false);
+  const [raffleWinners, setRaffleWinners] = useState([]);
+  const [selectedRaffleName, setSelectedRaffleName] = useState('');
+  const [consolationWinners, setConsolationWinners] = useState([]);
 
   const location = useLocation();
   const categories = ['all', 'Electronics', 'Gaming', 'Luxury', 'Fashion', 'Home'];
@@ -167,6 +173,49 @@ const PastResults = () => {
     return matchesSearch && matchesCategory && isEndedNow;
   });
 
+  // Open per-raffle winners modal and fetch rows from winners table
+  const openRaffleWinners = async (raffle) => {
+    if (!raffle) return;
+    setSelectedRaffleName(raffle.title || '');
+    setShowRaffleWinners(true);
+    setRaffleWinnersLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('winners')
+        .select('*')
+        .eq('raffle_name', raffle.title || '')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setRaffleWinners(Array.isArray(data) ? data : []);
+      // Try to load consolation winners by common patterns
+      let cons = [];
+      // Attempt 1: boolean flag is_consolation
+      const { data: cons1, error: consErr1 } = await supabase
+        .from('winners')
+        .select('*')
+        .eq('raffle_name', raffle.title || '')
+        .eq('is_consolation', true)
+        .order('created_at', { ascending: false });
+      if (!consErr1 && Array.isArray(cons1)) cons = cons1;
+      // Attempt 2: prize_type field
+      if (cons.length === 0) {
+        const { data: cons2, error: consErr2 } = await supabase
+          .from('winners')
+          .select('*')
+          .eq('raffle_name', raffle.title || '')
+          .eq('prize_type', 'consolation')
+          .order('created_at', { ascending: false });
+        if (!consErr2 && Array.isArray(cons2)) cons = cons2;
+      }
+      setConsolationWinners(cons);
+    } catch (e) {
+      setRaffleWinners([]);
+      setConsolationWinners([]);
+    } finally {
+      setRaffleWinnersLoading(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -270,25 +319,14 @@ const PastResults = () => {
                 
               </div>
 
-              {/* Winner Section */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-4 rounded-lg mb-4">
-                <div className="flex items-center mb-3">
-                  <Trophy className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" />
-                  <span className="font-semibold text-gray-900 dark:text-white">Winner</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                      {(raffle.winner && raffle.winner[0]) || 'W'}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{raffle.winner || 'TBA'}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Ticket #—</p>
-                    </div>
-                  </div>
-                  <div className="text-2xl">🎉</div>
-                </div>
+              {/* View Winner button only */}
+              <div className="mb-4">
+                <button
+                  onClick={() => openRaffleWinners(raffle)}
+                  className="btn-primary text-sm w-full"
+                >
+                  View Winners
+                </button>
               </div>
 
               {/* Stats */}
@@ -309,6 +347,94 @@ const PastResults = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Per-raffle Winners Modal */}
+      {showRaffleWinners && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
+                Winner{Array.isArray(raffleWinners) && raffleWinners.length !== 1 ? 's' : ''} — {selectedRaffleName || 'Raffle'}
+              </h3>
+              <button
+                onClick={() => { setShowRaffleWinners(false); setRaffleWinners([]); setConsolationWinners([]); }}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-3 max-h-[60vh] overflow-auto">
+              {raffleWinnersLoading && (
+                <div className="text-sm text-gray-600 dark:text-gray-400">Loading winners…</div>
+              )}
+              {!raffleWinnersLoading && Array.isArray(raffleWinners) && raffleWinners.length === 0 && (
+                <div className="text-sm text-gray-600 dark:text-gray-400">No winner recorded yet.</div>
+              )}
+              {!raffleWinnersLoading && Array.isArray(raffleWinners) && raffleWinners.map((w, idx) => (
+                <div key={w.id || idx} className="border border-gray-200 dark:border-gray-700 rounded-md p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Winner</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{w.user_name || w.user_email || 'Unknown'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Ticket</p>
+                      <p className="font-medium text-gray-900 dark:text-white">#{w.ticket_number || '—'}</p>
+                    </div>
+                  </div>
+                  {w.user_email && (
+                    <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">{w.user_email}</div>
+                  )}
+                  {w.created_at && (
+                    <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">Won on {new Date(w.created_at).toLocaleString()}</div>
+                  )}
+                </div>
+              ))}
+
+              {/* Consolation Prize Winners */}
+              {!raffleWinnersLoading && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Consolation Prize Winners</h4>
+                  {Array.isArray(consolationWinners) && consolationWinners.length > 0 ? (
+                    consolationWinners.map((w, idx) => (
+                      <div key={w.id || `c-${idx}`} className="border border-gray-200 dark:border-gray-700 rounded-md p-4 mb-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Winner</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{w.user_name || w.user_email || 'Unknown'}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Ticket</p>
+                            <p className="font-medium text-gray-900 dark:text-white">#{w.ticket_number || '—'}</p>
+                          </div>
+                        </div>
+                        {w.user_email && (
+                          <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">{w.user_email}</div>
+                        )}
+                        {w.created_at && (
+                          <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">Won on {new Date(w.created_at).toLocaleString()}</div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-600 dark:text-gray-400">No consolation winners recorded.</p>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+              <button
+                onClick={() => { setShowRaffleWinners(false); setRaffleWinners([]); setConsolationWinners([]); }}
+                className="btn-primary"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

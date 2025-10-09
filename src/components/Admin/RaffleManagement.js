@@ -49,7 +49,7 @@ const RaffleManagement = () => {
   }, []);
 
   const categories = ['Electronics', 'Gaming', 'Luxury', 'Fashion', 'Home'];
-  const statuses = ['all', 'active', 'paused', 'completed', 'draft'];
+  const statuses = ['all', 'active', 'paused', 'inactive', 'completed', 'draft'];
 
   const filteredRaffles = raffles.filter((raffle) => {
     const matchesSearch = (raffle.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -138,6 +138,7 @@ const RaffleManagement = () => {
       if (action === 'pause') updates.status = 'paused';
       if (action === 'resume') updates.status = 'active';
       if (action === 'end') updates.status = 'completed';
+      if (action === 'deactivate') updates.status = 'inactive';
 
       if (action === 'edit') {
         // Prefill modal for editing
@@ -180,6 +181,7 @@ const RaffleManagement = () => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
       case 'paused': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'inactive': return 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
       case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
       case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
@@ -190,6 +192,7 @@ const RaffleManagement = () => {
     switch (status) {
       case 'active': return <Play className="w-4 h-4" />;
       case 'paused': return <Pause className="w-4 h-4" />;
+      case 'inactive': return <Square className="w-4 h-4" />;
       case 'completed': return <Trophy className="w-4 h-4" />;
       default: return <Square className="w-4 h-4" />;
     }
@@ -344,6 +347,13 @@ const RaffleManagement = () => {
                     End
                   </button>
                   <button
+                    onClick={() => handleRaffleAction(raffle, 'deactivate')}
+                    className="flex-1 btn-secondary text-sm"
+                  >
+                    <Square className="w-4 h-4 mr-1" />
+                    Deactivate
+                  </button>
+                  <button
                     onClick={() => handleRaffleAction(raffle, 'edit')}
                     className="flex-1 btn-secondary text-sm"
                   >
@@ -361,6 +371,13 @@ const RaffleManagement = () => {
                   >
                     <Play className="w-4 h-4 mr-1" />
                     Resume
+                  </button>
+                  <button
+                    onClick={() => handleRaffleAction(raffle, 'deactivate')}
+                    className="flex-1 btn-secondary text-sm"
+                  >
+                    <Square className="w-4 h-4 mr-1" />
+                    Deactivate
                   </button>
                   <button
                     onClick={() => handleRaffleAction(raffle, 'edit')}

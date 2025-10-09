@@ -16,6 +16,7 @@ const UserLanding = () => {
   const [loadingRaffles, setLoadingRaffles] = useState(true);
   const [participantsCount, setParticipantsCount] = useState(0);
   const [loadingParticipants, setLoadingParticipants] = useState(true);
+  
 
   const fetchActive = async () => {
     try {
@@ -27,7 +28,7 @@ const UserLanding = () => {
         .order('end_date', { ascending: true });
       if (error) throw error;
       setAllActiveRaffles(data || []);
-      // Initial compute using local time
+      // Initial compute using local time (only those still running)
       const still = (data || []).filter(r => getTimeRemaining(r.end_date).total > 0);
       setActiveRaffles(still);
       setActiveCount(still.length);
@@ -37,6 +38,8 @@ const UserLanding = () => {
       setLoadingRaffles(false);
     }
   };
+
+  
 
   const fetchParticipants = async () => {
     try {
@@ -238,6 +241,8 @@ const UserLanding = () => {
           ))}
         </div>
       </div>
+
+      
 
       {/* Recent Winners */}
       <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6">
