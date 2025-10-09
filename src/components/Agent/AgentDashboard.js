@@ -27,11 +27,14 @@ const AgentDashboard = ({ onNavigate }) => {
   const [loadingActive, setLoadingActive] = useState(true);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [totalTicketsSold, setTotalTicketsSold] = useState(0);
+  const [loadingTickets, setLoadingTickets] = useState(true);
 
   // Derived stats from DB (active raffles query)
   const stats = React.useMemo(() => {
     const activeCount = activeRaffles.length;
-    const totalTicketsActive = activeRaffles.reduce((sum, r) => sum + (Number(r.ticketsSold) || 0), 0);
+    // Use total count from tickets table
+    const ticketsSold = totalTicketsSold;
     // Total participants from DB (app_users where role='user')
     const totalParticipants = totalUsersCount;
     const closingSoonHrs = 24; // next 24 hours
@@ -51,9 +54,9 @@ const AgentDashboard = ({ onNavigate }) => {
         color: 'bonfire'
       },
       {
-        title: 'Tickets Sold (Active)',
-        value: totalTicketsActive.toLocaleString(),
-        change: loadingActive ? '' : 'Across active raffles',
+        title: 'Tickets Sold',
+        value: ticketsSold.toLocaleString(),
+        change: loadingTickets ? 'Loading…' : 'Across all raffles',
         icon: Ticket,
         color: 'embers'
       },
@@ -72,7 +75,7 @@ const AgentDashboard = ({ onNavigate }) => {
         color: 'embers'
       }
     ];
-  }, [activeRaffles, loadingActive, totalUsersCount, loadingUsers]);
+  }, [activeRaffles, loadingActive, totalUsersCount, loadingUsers, totalTicketsSold, loadingTickets]);
 
   const fetchActiveRaffles = async () => {
     try {
@@ -106,47 +109,37 @@ const AgentDashboard = ({ onNavigate }) => {
   const fetchTotalUsers = async () => {
     try {
       setLoadingUsers(true);
-      // Strategy:
-      // 1) Count explicit role='user'
-      let total = 0;
-      let { count, error } = await supabase
+      // Count all users excluding agents
+      const { count, error } = await supabase
         .from('app_users')
         .select('id', { count: 'exact' })
-        .eq('role', 'user')
-        .range(0, 0); // request minimal rows but get accurate count
+        .neq('role', 'agent')
+        .range(0, 0);
       if (error) throw error;
-      total = Number(count || 0);
-
-      // 2) If zero, try case-insensitive match (some DBs store 'User'/'USER')
-      if (total === 0) {
-        const { error: e2, count: c2 } = await supabase
-          .from('app_users')
-          .select('id', { count: 'exact' })
-          .ilike('role', 'user')
-          .range(0, 0);
-        if (!e2 && (typeof c2 === 'number')) {
-          total = Number(c2 || 0);
-        }
-      }
-
-      // 3) Fallback: exclude agents (still excludes agents even if admin exists)
-      if (total === 0) {
-        const { count: c3, error: e3 } = await supabase
-          .from('app_users')
-          .select('id', { count: 'exact' })
-          .neq('role', 'agent')
-          .range(0, 0);
-        if (!e3 && typeof c3 === 'number') {
-          total = Number(c3 || 0);
-        }
-      }
-
-      setTotalUsersCount(total);
+      setTotalUsersCount(Number(count || 0));
     } catch (e) {
       console.warn('[AgentDashboard] failed to count users:', e?.message || e);
       setTotalUsersCount(0);
     } finally {
       setLoadingUsers(false);
+    }
+  };
+
+  const fetchTotalTicketsSold = async () => {
+    try {
+      setLoadingTickets(true);
+      // Count total rows in tickets table
+      const { count, error } = await supabase
+        .from('tickets')
+        .select('id', { count: 'exact' })
+        .range(0, 0);
+      if (error) throw error;
+      setTotalTicketsSold(Number(count || 0));
+    } catch (e) {
+      console.warn('[AgentDashboard] failed to count tickets:', e?.message || e);
+      setTotalTicketsSold(0);
+    } finally {
+      setLoadingTickets(false);
     }
   };
 
@@ -161,6 +154,7 @@ const AgentDashboard = ({ onNavigate }) => {
   useEffect(() => {
     fetchActiveRaffles();
     fetchTotalUsers();
+    fetchTotalTicketsSold();
   }, []);
 
   const getTimeRemaining = (endDate) => {

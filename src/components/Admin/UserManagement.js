@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Search, Filter, UserCheck, UserX, Mail, Calendar, Ticket, Ban, CheckCircle } from 'lucide-react';
+import { useToast } from '../../contexts/ToastContext';
 
 const UserManagement = () => {
+  const { show } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -126,16 +128,16 @@ const UserManagement = () => {
 
   const handleUserAction = (userId, action) => {
     console.log(`${action} user ${userId}`);
-    alert(`User ${action} successfully!`);
+    show(`User ${action} successfully!`, { type: 'success' });
   };
 
   const handleBulkAction = (action) => {
     if (selectedUsers.length === 0) {
-      alert('Please select users first');
+      show('Please select users first', { type: 'warning' });
       return;
     }
     console.log(`${action} users:`, selectedUsers);
-    alert(`${action} applied to ${selectedUsers.length} users`);
+    show(`${action} applied to ${selectedUsers.length} users`, { type: 'success' });
     setSelectedUsers([]);
   };
 

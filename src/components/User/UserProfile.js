@@ -6,9 +6,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { User, Ticket, Trophy, Calendar, Edit3, Save, X, Plus, Wallet as WalletIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { requestCashIn, listCashIns, getUserBalanceCents, getApprovedCashInTotalCents, fromCents, getFixedReferralCode } from '../../lib/wallet';
+import { useToast } from '../../contexts/ToastContext';
 
 const UserProfile = () => {
   const { user, updateProfile } = useAuth();
+  const { show } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({
     name: user?.name || '',
@@ -53,13 +55,13 @@ const UserProfile = () => {
       if (!success) throw new Error(error || 'Failed to update profile');
       setIsEditing(false);
       if (Array.isArray(dropped) && dropped.length > 0) {
-        alert(`Profile updated. Note: these fields were skipped because the columns are missing in the database: ${dropped.join(', ')}`);
+        show(`Profile updated. Skipped missing columns: ${dropped.join(', ')}`, { type: 'warning' });
       } else {
-        alert('Profile updated');
+        show('Profile updated', { type: 'success' });
       }
     } catch (err) {
       console.error('Save profile error:', err);
-      alert(`Failed to save profile: ${err.message || err}`);
+      show(`Failed to save profile: ${err.message || err}`, { type: 'error' });
     }
   };
 
@@ -412,13 +414,13 @@ const UserProfile = () => {
         { referral_code: referralToUse }
       );
       if (!success) throw new Error(error || 'Failed to submit');
-      alert('Cash-in request submitted for review');
+      show('Cash-in request submitted for review', { type: 'success' });
       setCashInForm({ amount: '', method: 'gcash', referral_code: referralToUse });
       // refresh list
       const listRes = await listCashIns(uid, { limit: 5 });
       if (listRes.success) setCashIns(listRes.data || []);
     } catch (err) {
-      alert(err.message || String(err));
+      show(err.message || String(err), { type: 'error' });
     }
   };
 

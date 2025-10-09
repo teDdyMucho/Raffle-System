@@ -3,10 +3,12 @@ import ImageWithFallback from '../common/ImageWithFallback';
 import { supabase } from '../../lib/supabaseClient';
 import { Upload, Trash2, Copy, RefreshCw, Image as ImageIcon, Check, PackagePlus } from 'lucide-react';
 import imagesManifest from '../../images/manifest';
+import { useToast } from '../../contexts/ToastContext';
 
 const BUCKET = 'images';
 
 const ImageManager = () => {
+  const { show } = useToast();
   const [files, setFiles] = useState([]);
   const [pathPrefix, setPathPrefix] = useState('uploads/');
   const [bulkPrefix, setBulkPrefix] = useState('library/');
@@ -24,7 +26,7 @@ const ImageManager = () => {
       setFiles(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('List files error:', err);
-      alert(`Failed to list files: ${err.message || err}`);
+      show(`Failed to list files: ${err.message || err}`, { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -39,7 +41,7 @@ const ImageManager = () => {
   const handleBulkImport = async () => {
     try {
       if (!Array.isArray(imagesManifest) || imagesManifest.length === 0) {
-        alert('No images found in manifest.');
+        show('No images found in manifest.', { type: 'warning' });
         return;
       }
       setUploading(true);
@@ -55,10 +57,10 @@ const ImageManager = () => {
         if (error) throw error;
       }
       await fetchFiles();
-      alert('Bulk import completed.');
+      show('Bulk import completed.', { type: 'success' });
     } catch (err) {
       console.error('Bulk import error:', err);
-      alert(`Bulk import failed: ${err.message || err}`);
+      show(`Bulk import failed: ${err.message || err}`, { type: 'error' });
     } finally {
       setUploading(false);
     }
@@ -87,7 +89,7 @@ const ImageManager = () => {
       e.target.value = '';
     } catch (err) {
       console.error('Upload error:', err);
-      alert(`Upload failed: ${err.message || err}`);
+      show(`Upload failed: ${err.message || err}`, { type: 'error' });
     } finally {
       setUploading(false);
     }
@@ -102,7 +104,7 @@ const ImageManager = () => {
       await fetchFiles();
     } catch (err) {
       console.error('Delete error:', err);
-      alert(`Delete failed: ${err.message || err}`);
+      show(`Delete failed: ${err.message || err}`, { type: 'error' });
     }
   };
 
@@ -120,7 +122,7 @@ const ImageManager = () => {
       setTimeout(() => setCopiedKey(''), 1500);
     } catch (err) {
       console.error('Clipboard error:', err);
-      alert('Failed to copy to clipboard');
+      show('Failed to copy to clipboard', { type: 'error' });
     }
   };
 

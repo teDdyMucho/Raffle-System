@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Download, Calendar, TrendingUp, Users, Ticket, DollarSign, FileText, BarChart3 } from 'lucide-react';
+import { BarChart3, Calendar, Download, Filter, TrendingUp, DollarSign, FileText, Ticket, Users } from 'lucide-react';
+import { useToast } from '../../contexts/ToastContext';
 
 const Reports = () => {
-  const [dateRange, setDateRange] = useState('last30days');
-  const [reportType, setReportType] = useState('overview');
+  const { show } = useToast();
+  const [reportType, setReportType] = useState('sales');
+  const [dateRange, setDateRange] = useState('last_7_days');
 
   // Mock report data
   const reportData = {
@@ -40,14 +42,14 @@ const Reports = () => {
   const handleGenerate = () => {
     const typeLabel = reportTypes.find(r => r.value === reportType)?.label || reportType;
     const rangeLabel = dateRanges.find(r => r.value === dateRange)?.label || dateRange;
-    alert(`Generating ${typeLabel} for ${rangeLabel}...`);
+    show(`Generating ${typeLabel} for ${rangeLabel}...`, { type: 'info' });
     // In a real app, trigger API download or query here
   };
 
   const exportReport = (format) => {
     // Mock export functionality
     console.log(`Exporting ${reportType} report as ${format}`);
-    alert(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report exported as ${format.toUpperCase()}!`);
+    show(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report exported as ${format.toUpperCase()}!`, { type: 'success' });
   };
 
   const dateRanges = [
@@ -356,7 +358,7 @@ const Reports = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Set up automated reports to be sent to your email weekly or monthly.
               </p>
-              <button onClick={() => alert('Scheduling setup coming soon.')} className="btn-primary text-sm">
+              <button onClick={() => show('Scheduling setup coming soon.', { type: 'info' })} className="btn-primary text-sm">
                 Setup Schedule
               </button>
             </div>

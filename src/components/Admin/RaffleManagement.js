@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Pause, Play, Square, Trophy, Calendar, Users, DollarSign, Search, Filter, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
+import { useToast } from '../../contexts/ToastContext';
 
 const RaffleManagement = () => {
+  const { show } = useToast();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -36,7 +38,7 @@ const RaffleManagement = () => {
       setRaffles(data || []);
     } catch (err) {
       console.error('Fetch raffles error:', err);
-      alert('Failed to fetch raffles from Supabase. Please verify RLS policies.');
+      show('Failed to fetch raffles from Supabase. Please verify RLS policies.', { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -60,7 +62,7 @@ const RaffleManagement = () => {
     try {
       setSaving(true);
       if (!newRaffle.title || !newRaffle.startDate || !newRaffle.endDate || !newRaffle.maxTickets || !newRaffle.ticketPrice) {
-        alert('Please fill in all required fields.');
+        show('Please fill in all required fields.', { type: 'warning' });
         setSaving(false);
         return;
       }
@@ -121,10 +123,10 @@ const RaffleManagement = () => {
       setImagePreview('');
       setEditId(null);
       await fetchRaffles();
-      alert('Raffle saved to Supabase.');
+      show('Raffle saved to Supabase.', { type: 'success' });
     } catch (err) {
       console.error('Create raffle error:', err);
-      alert(`Failed to create raffle: ${err.message || err}`);
+      show(`Failed to create raffle: ${err.message || err}`, { type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -159,11 +161,11 @@ const RaffleManagement = () => {
         const { error } = await supabase.from('raffles').update(updates).eq('id', raffle.id);
         if (error) throw error;
         await fetchRaffles();
-        alert(`Raffle ${action} successfully!`);
+        show(`Raffle ${action} successfully!`, { type: 'success' });
       }
     } catch (err) {
       console.error('Raffle action error:', err);
-      alert(`Failed to ${action} raffle: ${err.message || err}`);
+      show(`Failed to ${action} raffle: ${err.message || err}`, { type: 'error' });
     }
   };
 
@@ -171,7 +173,7 @@ const RaffleManagement = () => {
     // Mock winner selection
     const winners = ['John D.', 'Emma L.', 'Michael R.', 'Lisa K.', 'David P.'];
     const randomWinner = winners[Math.floor(Math.random() * winners.length)];
-    alert(`Winner selected: ${randomWinner}!`);
+    show(`Winner selected: ${randomWinner}!`, { type: 'success' });
   };
 
   const getStatusColor = (status) => {

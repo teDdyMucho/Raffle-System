@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { tryDebitForPurchase, toCents, creditBalanceCents } from '../../lib/wallet';
 import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
+import { useToast } from '../../contexts/ToastContext';
 
 const JoinRaffles = () => {
   const [selectedRaffle, setSelectedRaffle] = useState(null);
@@ -16,6 +17,7 @@ const JoinRaffles = () => {
 
   const [raffles, setRaffles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { show } = useToast();
 
   const fetchActiveRaffles = async () => {
     try {
@@ -31,7 +33,7 @@ const JoinRaffles = () => {
       setRaffles(data || []);
     } catch (err) {
       console.error('Fetch active raffles error:', err);
-      alert('Failed to load raffles from Supabase. Please ensure your env and policies are set.');
+      show('Failed to load raffles from Supabase. Please ensure your env and policies are set.', { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,7 @@ const JoinRaffles = () => {
       const debitRes = await tryDebitForPurchase(user.id, priceCents);
       if (!debitRes.success) {
         if (debitRes.reason === 'insufficient_funds') {
-          alert('Insufficient wallet balance. Please cash in first.');
+          show('Insufficient wallet balance. Please cash in first.', { type: 'warning' });
           return;
         }
         throw new Error(debitRes.error || 'Failed to debit wallet');
@@ -97,12 +99,13 @@ const JoinRaffles = () => {
         await creditBalanceCents(user.id, priceCents);
         throw error;
       }
-      alert(`Successfully joined ${selectedRaffle.title} with ticket #${ticketNumber}!`);
+      // Use global defaults (centered, 3s)
+      show(`Successfully joined ${selectedRaffle.title} with ticket #${ticketNumber}!`, { type: 'success' });
       setSelectedRaffle(null);
       setTicketNumber('');
     } catch (err) {
       console.error('Join raffle error:', err);
-      alert(`Failed to join raffle: ${err.message || err}. If you haven't created a tickets table yet, I can provide the SQL.`);
+      show(`Failed to join raffle: ${err.message || err}. If you haven't created a tickets table yet, I can provide the SQL.`, { type: 'error' });
     } finally {
       setJoining(false);
     }

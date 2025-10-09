@@ -13,6 +13,8 @@ const UserLanding = () => {
   const [activeRaffles, setActiveRaffles] = useState([]);
   const [activeCount, setActiveCount] = useState(0);
   const [loadingRaffles, setLoadingRaffles] = useState(true);
+  const [participantsCount, setParticipantsCount] = useState(0);
+  const [loadingParticipants, setLoadingParticipants] = useState(true);
 
   const fetchActive = async () => {
     try {
@@ -42,8 +44,27 @@ const UserLanding = () => {
     }
   };
 
+  const fetchParticipants = async () => {
+    try {
+      setLoadingParticipants(true);
+      const { count, error } = await supabase
+        .from('app_users')
+        .select('id', { count: 'exact' })
+        .neq('role', 'agent')
+        .range(0, 0);
+      if (error) throw error;
+      setParticipantsCount(Number(count || 0));
+    } catch (err) {
+      console.error('Fetch participants (landing) error:', err);
+      setParticipantsCount(0);
+    } finally {
+      setLoadingParticipants(false);
+    }
+  };
+
   useEffect(() => {
     fetchActive();
+    fetchParticipants();
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -133,7 +154,9 @@ const UserLanding = () => {
           <div className="bg-gradient-to-br from-embers-100 to-embers-200 dark:from-embers-900/30 dark:to-embers-800/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
             <Users className="w-8 h-8 text-embers-600 dark:text-embers-400" />
           </div>
-          <h3 className="text-3xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-3">1,433</h3>
+          <h3 className="text-3xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-3">
+            {loadingParticipants ? 'Loading…' : participantsCount.toLocaleString()}
+          </h3>
           <p className="text-blackswarm-600 dark:text-magnolia-400 font-medium">Total Participants</p>
         </div>
 

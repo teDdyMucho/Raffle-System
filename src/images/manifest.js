@@ -1,40 +1,53 @@
 // Auto-generated manifest of local images for bulk upload to Supabase Storage
 // Each entry: { name: string, url: string }
 
-import img10 from './10.png';
-import img11 from './11.png';
-import img12 from './12.png';
-import img13 from './13.png';
-import img14 from './14.png';
-import img15 from './15.png';
-import img16 from './16.png';
-import img8 from './8.png';
-import img9 from './9.png';
-import imgIp14 from './ip14.png';
-import imgIp142 from "./ip14 (2).png";
-import imgIp143 from "./ip14 (3).png";
-import imgIp144 from "./ip14 (4).png";
-import imgIp145 from "./ip14 (5).png";
-import imgIp146 from "./ip14 (6).png";
-import imgIp147 from "./ip14 (7).png";
+import airpods from './airpods.png';
+import allen1 from './allen (1).png';
+import allen2 from './allen2.png';
+import cashinads from './cashinads.png';
+import cinemaGc from './cinema gc.png';
+import gcash from './gcash.png';
+import gopro from './gopro.png';
+import honorPad from './honnor pad.png';
+import hpLaptop from './hp laptop.png';
+import ip14 from './ip14.png';
+import iwatch from './iwatch.png';
+import miniFan from './min fan.png';
+import oppoPhone from './oppo phone.png';
+import powerbank from './powebank.png';
+import promoads1 from './promoads1.png';
+import promoads2 from './promoads2.png';
+import samsungPhone from './samsung phone.png';
+import samsungTab from './samsung tab.png';
+import smGc from './sm gc.png';
+import speakerWithMic from './speaker with mic.png';
+import nintendoSwitch from './switch.png';
+import winnerads from './winnerads.png';
 
 const images = [
-  { name: '10.png', url: img10 },
-  { name: '11.png', url: img11 },
-  { name: '12.png', url: img12 },
-  { name: '13.png', url: img13 },
-  { name: '14.png', url: img14 },
-  { name: '15.png', url: img15 },
-  { name: '16.png', url: img16 },
-  { name: '8.png', url: img8 },
-  { name: '9.png', url: img9 },
-  { name: 'ip14.png', url: imgIp14 },
-  { name: 'ip14 (2).png', url: imgIp142 },
-  { name: 'ip14 (3).png', url: imgIp143 },
-  { name: 'ip14 (4).png', url: imgIp144 },
-  { name: 'ip14 (5).png', url: imgIp145 },
-  { name: 'ip14 (6).png', url: imgIp146 },
-  { name: 'ip14 (7).png', url: imgIp147 },
+  { name: 'airpods.png', url: airpods },
+  { name: 'allen (1).png', url: allen1 },
+  { name: 'allen2.png', url: allen2 },
+  { name: 'cashinads.png', url: cashinads },
+  { name: 'cinema gc.png', url: cinemaGc },
+  { name: 'gcash.png', url: gcash },
+  { name: 'gopro.png', url: gopro },
+  { name: 'honnor pad.png', url: honorPad },
+  { name: 'hp laptop.png', url: hpLaptop },
+  { name: 'ip14.png', url: ip14 },
+  { name: 'iwatch.png', url: iwatch },
+  { name: 'min fan.png', url: miniFan },
+  { name: 'oppo phone.png', url: oppoPhone },
+  { name: 'powebank.png', url: powerbank },
+  { name: 'promoads1.png', url: promoads1 },
+  { name: 'promoads2.png', url: promoads2 },
+  { name: 'samsung phone.png', url: samsungPhone },
+  { name: 'samsung tab.png', url: samsungTab },
+  { name: 'sm gc.png', url: smGc },
+  { name: 'speaker with mic.png', url: speakerWithMic },
+  { name: 'switch.png', url: nintendoSwitch },
+  { name: 'winnerads.png', url: winnerads },
 ];
 
 export default images;
+
