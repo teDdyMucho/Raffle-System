@@ -10,6 +10,7 @@ const UserLanding = () => {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  const [allActiveRaffles, setAllActiveRaffles] = useState([]);
   const [activeRaffles, setActiveRaffles] = useState([]);
   const [activeCount, setActiveCount] = useState(0);
   const [loadingRaffles, setLoadingRaffles] = useState(true);
@@ -19,24 +20,17 @@ const UserLanding = () => {
   const fetchActive = async () => {
     try {
       setLoadingRaffles(true);
-      const today = new Date().toISOString().slice(0, 10);
       const { data, error } = await supabase
         .from('raffles')
         .select('*')
         .eq('status', 'active')
-        .gte('end_date', today)
         .order('end_date', { ascending: true });
       if (error) throw error;
-      setActiveRaffles(data || []);
-
-      // Fetch total count of active raffles (not limited)
-      const { count, error: countError } = await supabase
-        .from('raffles')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .gte('end_date', today);
-      if (countError) throw countError;
-      setActiveCount(count || 0);
+      setAllActiveRaffles(data || []);
+      // Initial compute using local time
+      const still = (data || []).filter(r => getTimeRemaining(r.end_date).total > 0);
+      setActiveRaffles(still);
+      setActiveCount(still.length);
     } catch (err) {
       console.error('Fetch active raffles (landing) error:', err);
     } finally {
@@ -72,8 +66,24 @@ const UserLanding = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Recompute visible active raffles every tick without re-fetching
+  useEffect(() => {
+    if (!Array.isArray(allActiveRaffles)) return;
+    const still = allActiveRaffles.filter(r => getTimeRemaining(r.end_date).total > 0);
+    setActiveRaffles(still);
+    setActiveCount(still.length);
+  }, [currentTime, allActiveRaffles]);
+
   const getTimeRemaining = (endDate) => {
-    const total = Date.parse(endDate) - Date.parse(currentTime);
+    // Normalize date-only to end of day local to prevent early ending due to UTC parsing
+    let end;
+    if (typeof endDate === 'string') {
+      const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(endDate);
+      end = new Date(isDateOnly ? `${endDate}T23:59:59` : endDate);
+    } else {
+      end = endDate;
+    }
+    const total = Date.parse(end) - Date.parse(currentTime);
     const days = Math.floor(total / (1000 * 60 * 60 * 24));
     const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((total / 1000 / 60) % 60);
@@ -133,7 +143,7 @@ const UserLanding = () => {
               <ArrowRight className="w-5 h-5 ml-2" />
             </button>
             <button onClick={() => navigate('/user/results')} className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors duration-200 flex items-center justify-center">
-              View Past Winners
+              Show Results
               <Trophy className="w-5 h-5 ml-2" />
             </button>
           </div>

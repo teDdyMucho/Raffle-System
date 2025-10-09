@@ -89,7 +89,7 @@ const AgentDashboard = ({ onNavigate }) => {
         .order('end_date', { ascending: true })
         .limit(10);
       if (error) throw error;
-      const rows = (data || []).map(r => ({
+      let rows = (data || []).map(r => ({
         id: r.id,
         title: r.title || 'Raffle',
         endDate: r.end_date || r.ends_at || r.end || r.close_at || new Date().toISOString(),
@@ -97,6 +97,32 @@ const AgentDashboard = ({ onNavigate }) => {
         maxTickets: r.max_tickets ?? r.capacity ?? 0,
         participants: r.participants_count ?? r.participants ?? 0,
       }));
+
+      // Hook up participants: count tickets per raffle
+      try {
+        const participantCounts = await Promise.all(rows.map(async (raffle) => {
+          // Prefer counting by raffle_id; fallback to raffle_name match if needed
+          try {
+            const { count, error } = await supabase
+              .from('tickets')
+              .select('id', { count: 'exact', head: true })
+              .eq('raffle_id', raffle.id);
+            if (error) throw error;
+            return { id: raffle.id, count: Number(count || 0) };
+          } catch (e1) {
+            const { count: c2 } = await supabase
+              .from('tickets')
+              .select('id', { count: 'exact', head: true })
+              .eq('raffle_name', raffle.title);
+            return { id: raffle.id, count: Number(c2 || 0) };
+          }
+        }));
+        const map = Object.fromEntries(participantCounts.map(x => [x.id, x.count]));
+        rows = rows.map(r => ({ ...r, participants: map[r.id] ?? r.participants }));
+      } catch (pcErr) {
+        console.warn('[AgentDashboard] participants count fallback used:', pcErr?.message || pcErr);
+      }
+
       setActiveRaffles(rows);
     } catch (e) {
       console.warn('[AgentDashboard] failed to fetch active raffles:', e?.message || e);
@@ -291,23 +317,7 @@ const AgentDashboard = ({ onNavigate }) => {
                     <CountdownTimer endDate={raffle.endDate} />
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="mb-3">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-blackswarm-600 dark:text-magnolia-400">
-                        Tickets: {raffle.ticketsSold}/{raffle.maxTickets}
-                      </span>
-                      <span className="text-blackswarm-600 dark:text-magnolia-400">
-                        {Math.round((raffle.ticketsSold / raffle.maxTickets) * 100)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-magnolia-200 dark:bg-blackswarm-700 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-bonfire-500 to-embers-500 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${(raffle.ticketsSold / raffle.maxTickets) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
+                  {/* Tickets/progress removed per request */}
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center text-sm text-blackswarm-500 dark:text-magnolia-400">

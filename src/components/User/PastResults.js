@@ -5,14 +5,21 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import winnerAds from '../../images/winnerads.png';
 import PopupAds from '../PopupAds';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PastResults = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [results, setResults] = useState([]);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [totalParticipants, setTotalParticipants] = useState(null);
+  const [totalTicketsSold, setTotalTicketsSold] = useState(0);
+  const [participantsByRaffleName, setParticipantsByRaffleName] = useState({});
   const [showAd, setShowAd] = useState(false);
+  const [showWinnersModal, setShowWinnersModal] = useState(false);
+  const [myWins, setMyWins] = useState([]);
+  const { user } = useAuth();
 
   const location = useLocation();
   const categories = ['all', 'Electronics', 'Gaming', 'Luxury', 'Fashion', 'Home'];
@@ -25,9 +32,9 @@ const PastResults = () => {
         .from('raffles')
         .select('*')
         .order('end_date', { ascending: false });
-      // Filter for completed raffles (status or end_date in the past)
+      // Filter for ended raffles (status inactive, or end_date in the past)
       const now = new Date().toISOString();
-      query = query.or('status.eq.completed,end_date.lt.' + now);
+      query = query.or('status.eq.inactive,end_date.lt.' + now);
       const { data, error } = await query;
       if (!error && Array.isArray(data)) {
         setResults(data);
@@ -42,6 +49,44 @@ const PastResults = () => {
     if (q) setSearchTerm(q);
     fetchResults();
   }, [location.search]);
+
+  // Tick every second for real-time end detection
+  useEffect(() => {
+    const t = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Fetch participants per raffle using tickets.raffle_name
+  useEffect(() => {
+    const fetchPerRaffleParticipants = async () => {
+      if (!Array.isArray(results) || results.length === 0) {
+        setParticipantsByRaffleName({});
+        return;
+      }
+      try {
+        const counts = await Promise.all(
+          results.map(async (r) => {
+            const name = r.title || '';
+            if (!name) return { name, count: 0 };
+            const { count, error } = await supabase
+              .from('tickets')
+              .select('id', { count: 'exact', head: true })
+              .eq('raffle_name', name);
+            if (error) {
+              return { name, count: 0 };
+            }
+            return { name, count: Number(count || 0) };
+          })
+        );
+        const map = {};
+        counts.forEach(({ name, count }) => { if (name) map[name] = count; });
+        setParticipantsByRaffleName(map);
+      } catch (e) {
+        setParticipantsByRaffleName({});
+      }
+    };
+    fetchPerRaffleParticipants();
+  }, [results]);
 
   // Fetch total participants from app_users (row count)
   useEffect(() => {
@@ -60,15 +105,66 @@ const PastResults = () => {
     fetchParticipants();
   }, []);
 
+  // Fetch total tickets sold (row count from tickets)
+  useEffect(() => {
+    const fetchTicketsSold = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('tickets')
+          .select('id', { count: 'exact', head: true });
+        if (error) throw error;
+        setTotalTicketsSold(Number(count || 0));
+      } catch (e) {
+        setTotalTicketsSold(0);
+      }
+    };
+    fetchTicketsSold();
+  }, []);
+
   // Always show popup ad when this page is opened
   useEffect(() => {
     setShowAd(true);
   }, []);
 
+  // When ad closes, check if current user has wins and prompt
+  const handleAdClosed = async () => {
+    setShowAd(false);
+    try {
+      const email = user?.email;
+      if (!email) return;
+      const { data, error } = await supabase
+        .from('winners')
+        .select('*')
+        .eq('user_email', email)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      if (Array.isArray(data) && data.length > 0) {
+        setMyWins(data);
+        setShowWinnersModal(true);
+      }
+    } catch (e) {
+      // Silent fail; do not block UI
+    }
+  };
+
+  // Normalize date-only to local end-of-day then compute remaining
+  const getTimeRemaining = (endDate) => {
+    let end;
+    if (typeof endDate === 'string') {
+      const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(endDate);
+      end = new Date(isDateOnly ? `${endDate}T23:59:59` : endDate);
+    } else {
+      end = endDate;
+    }
+    return Date.parse(end) - Date.parse(currentTime);
+  };
+
   const filteredRaffles = results.filter((raffle) => {
     const matchesSearch = (raffle.title || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || raffle.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const isEndedNow = (raffle.status === 'inactive') || (getTimeRemaining(raffle.end_date) <= 0);
+    return matchesSearch && matchesCategory && isEndedNow;
   });
 
   const formatDate = (dateString) => {
@@ -82,10 +178,10 @@ const PastResults = () => {
   return (
     <div className="space-y-6">
       {/* Popup Ad using shared component for consistent design */}
-      <PopupAds open={showAd} onClose={() => setShowAd(false)} images={[winnerAds]} />
+      <PopupAds open={showAd} onClose={handleAdClosed} images={[winnerAds]} />
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Past Raffle Results</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Raffle Results</h1>
         <p className="text-gray-600 dark:text-gray-400">Check out our previous winners and their lucky numbers!</p>
       </div>
 
@@ -142,7 +238,7 @@ const PastResults = () => {
           {!loading && filteredRaffles.length === 0 && (
             <div className="col-span-full text-center py-16 text-gray-500 dark:text-gray-400">
               <Trophy className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">No past raffles yet</h3>
+              <h3 className="text-lg font-medium mb-2">No raffles yet</h3>
               <p className="text-sm">Winners will appear here once raffles are completed!</p>
             </div>
           )}
@@ -196,19 +292,12 @@ const PastResults = () => {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+              <div className="grid grid-cols-1 gap-4 mb-4 text-sm">
                 <div className="flex items-center">
                   <Users className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
                   <div>
                     <p className="text-gray-600 dark:text-gray-400">Participants</p>
-                    <p className="font-medium text-gray-900 dark:text-white">—</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Ticket className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
-                  <div>
-                    <p className="text-gray-600 dark:text-gray-400">Max Tickets</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{raffle.max_tickets}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{(participantsByRaffleName[raffle.title] ?? 0).toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -220,6 +309,57 @@ const PastResults = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Winners Modal (shown after ad is closed if user has wins) */}
+      {showWinnersModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
+                Congratulations!
+              </h3>
+              <button
+                onClick={() => setShowWinnersModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-3 max-h-[60vh] overflow-auto">
+              {myWins.map((w, idx) => (
+                <div key={w.id || idx} className="border border-gray-200 dark:border-gray-700 rounded-md p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Raffle</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{w.raffle_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Ticket</p>
+                      <p className="font-medium text-gray-900 dark:text-white">#{w.ticket_number}</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    Won on {new Date(w.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+              {myWins.length === 0 && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">No wins found.</p>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+              <button
+                onClick={() => setShowWinnersModal(false)}
+                className="btn-primary"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -248,7 +388,7 @@ const PastResults = () => {
             <div className="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Ticket className="w-8 h-8 text-purple-600 dark:text-purple-400" />
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{results.reduce((sum, r) => sum + (r.max_tickets || 0), 0)}</h3>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{totalTicketsSold.toLocaleString()}</h3>
             <p className="text-gray-600 dark:text-gray-400 font-medium">Tickets Sold</p>
           </div>
 

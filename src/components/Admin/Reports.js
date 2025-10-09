@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, Calendar, Download, Filter, TrendingUp, DollarSign, FileText, Ticket, Users } from 'lucide-react';
+import { BarChart3, Calendar, Download, TrendingUp, DollarSign, FileText, Ticket, Users } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 
 const Reports = () => {

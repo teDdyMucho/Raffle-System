@@ -1,0 +1,67 @@
+Cleanup Report (2025-10-09 22:08)
+Project: mamamoraffle/src
+
+Summary
+- This report lists likely-unused components and assets based on static route/import analysis.
+- No files were deleted or moved. This is an advisory list for review.
+- Criteria: files that export a default but are not referenced from the routed entry points (App.js) or indirectly through used layout/components.
+
+Entry Points and Key Routes (from src/App.js)
+- Public: /login -> components/Auth/Login.js
+- Public: /signup -> components/Auth/SignUp.js
+- Public helper: /copy-ref -> components/Shared/CopyReferral.js
+- User routes (protected):
+  - /user -> components/User/UserLanding.js
+  - /user/join -> components/User/JoinRaffles.js
+  - /user/results -> components/User/PastResults.js
+  - /user/profile -> components/User/UserProfile.js
+- Agent routes (protected):
+  - /agent -> components/Agent/AgentLayout.js (internal navigation loads Agent sub-pages)
+- Global UI/Context: contexts/ThemeContext.js, contexts/ToastContext.js, contexts/AuthContext.js, contexts/NotificationContext.js, components/UI/ToastContainer.js, components/PopupAds.js
+
+Likely Unused Components (candidates)
+- components/Layout/AdminLayout.js
+  - Not imported or routed in App.js.
+  - No other entry references detected.
+- components/Admin/* (entire directory)
+  - Files: AdminDashboard.js, AdminOverview.js, RaffleManagement.js, Reports.js, UserManagement.js
+  - None of these are imported by App.js directly.
+  - Not referenced by Agent or User layouts. Appears to be a future/admin area not yet wired.
+
+Notes on Agent components (likely used)
+- AgentLayout.js (routed at /agent) renders:
+  - AgentDashboard.js, ImageManager.js, AgentProfile.js, AgentSettings.js, AgentCommissionTracker.js
+  - These are considered in-use via internal Agent navigation.
+
+Notes on User components (used)
+- UserLanding.js, JoinRaffles.js, PastResults.js, UserProfile.js, UserLayout.js, UserHeader.js
+- All appear either routed or used by those routed pages.
+
+Images and Assets
+- images/manifest.js is imported by components/Agent/ImageManager.js to support bulk import to storage.
+- Known direct image imports:
+  - components/User/PastResults.js -> images/winnerads.png
+  - components/User/UserProfile.js -> images/cashinads.png
+- Due to possible dynamic usage via storage URLs and future features, no images are marked unused in this pass.
+
+Other Context Files
+- contexts/* (AuthContext, ThemeContext, ToastContext, NotificationContext): used by App.js providers.
+- lib/* (supabaseClient.js, imageUrl.js, wallet.js): referenced by various components (in use).
+
+Recommendations
+1) If you confirm the Admin section is not needed right now, archive or delete:
+   - components/Layout/AdminLayout.js
+   - components/Admin/AdminDashboard.js
+   - components/Admin/AdminOverview.js
+   - components/Admin/RaffleManagement.js
+   - components/Admin/Reports.js
+   - components/Admin/UserManagement.js
+2) Keep images as-is unless we run a content-aware check and UI review.
+3) Run a linter/unused-import pass to remove dead imports within files.
+
+Next Steps (upon approval)
+- Move the listed Admin files into src/archive/unused/ (non-destructive), or delete them outright per your preference.
+- Run ESLint/TS to auto-fix unused imports.
+- Optional: Add a CI check for unused files and imports to prevent drift.
+
+Prepared by: Cascade

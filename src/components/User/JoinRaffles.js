@@ -18,11 +18,12 @@ const JoinRaffles = () => {
   const [raffles, setRaffles] = useState([]);
   const [loading, setLoading] = useState(true);
   const { show } = useToast();
+  const [completedIds, setCompletedIds] = useState([]);
 
   const fetchActiveRaffles = async () => {
     try {
       setLoading(true);
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toISOString().slice(0, 10); // works for date column
       const { data, error } = await supabase
         .from('raffles')
         .select('*')
@@ -47,8 +48,48 @@ const JoinRaffles = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-complete raffles that have ended on the client and refresh lists
+  useEffect(() => {
+    const autoComplete = async () => {
+      if (!Array.isArray(raffles) || raffles.length === 0) return;
+      const toComplete = raffles.filter(r => {
+        const t = getTimeRemaining(r.end_date).total;
+        return t <= 0 && r.status === 'active' && !completedIds.includes(r.id);
+      });
+      if (toComplete.length === 0) return;
+
+      try {
+        await Promise.all(
+          toComplete.map(async (r) => {
+            const { error } = await supabase
+              .from('raffles')
+              .update({ status: 'inactive' })
+              .eq('id', r.id);
+            if (!error) {
+              setCompletedIds((prev) => prev.concat(r.id));
+            }
+          })
+        );
+      } catch (e) {
+        // silent; RLS may block updates if no policy exists
+      } finally {
+        // Refresh visible list regardless so ended items disappear if server already marked them
+        fetchActiveRaffles();
+      }
+    };
+    autoComplete();
+  }, [currentTime, raffles]);
+
   const getTimeRemaining = (endDate) => {
-    const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+    // Normalize date-only values to end-of-day in local time to avoid timezone misparsing
+    let end;
+    if (typeof endDate === 'string') {
+      // If string looks like YYYY-MM-DD (no time component), set to 23:59:59 local
+      const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(endDate);
+      end = new Date(isDateOnly ? `${endDate}T23:59:59` : endDate);
+    } else {
+      end = endDate;
+    }
     const total = Date.parse(end) - Date.parse(currentTime);
     const days = Math.floor(total / (1000 * 60 * 60 * 24));
     const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
@@ -152,14 +193,16 @@ const JoinRaffles = () => {
             Loading raffles...
           </div>
         )}
-        {!loading && raffles.length === 0 && (
+        {/* Compute only raffles that have not ended yet in local time */}
+        {(() => { return null; })()}
+        {!loading && raffles.filter(r => getTimeRemaining(r.end_date).total > 0).length === 0 && (
           <div className="col-span-full text-center py-16 text-gray-500 dark:text-gray-400">
             <Ticket className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-medium mb-2">No active raffles</h3>
             <p className="text-sm">Check back soon for new opportunities to win!</p>
           </div>
         )}
-        {!loading && raffles.map((raffle) => (
+        {!loading && raffles.filter(r => getTimeRemaining(r.end_date).total > 0).map((raffle) => (
           <div
             key={raffle.id}
             className="card hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-l-primary-500"

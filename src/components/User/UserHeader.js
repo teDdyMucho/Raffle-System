@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ImageWithFallback from '../common/ImageWithFallback';
 import appLogo from '../../images/allen (1).png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { supabase } from '../../lib/supabaseClient';
 import {
   Menu,
   X,
@@ -30,11 +31,13 @@ const UserHeader = () => {
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { notifications, unreadCount, markAllRead, markAsRead } = useNotifications();
+  const [showWinModal, setShowWinModal] = useState(false);
+  const [myWins, setMyWins] = useState([]);
 
   const nav = [
     { to: '/user', label: 'Home', icon: Home },
     { to: '/user/join', label: 'Join Raffles', icon: Ticket },
-    { to: '/user/results', label: 'Past Results', icon: Trophy },
+    { to: '/user/results', label: 'Results', icon: Trophy },
     { to: '/user/profile', label: 'Profile', icon: UserIcon },
   ];
 
@@ -57,6 +60,34 @@ const UserHeader = () => {
       setOpen(false);
     }
   };
+
+  // On login (session present) show a winners popup if user has wins
+  useEffect(() => {
+    const run = async () => {
+      try {
+        if (!user?.email) return;
+        // prevent showing multiple times per session
+        const shownKey = `wins_modal_shown_${user.email}`;
+        if (sessionStorage.getItem(shownKey)) return;
+
+        const { data, error } = await supabase
+          .from('winners')
+          .select('*')
+          .eq('user_email', user.email)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        if (error) throw error;
+        if (Array.isArray(data) && data.length > 0) {
+          setMyWins(data);
+          setShowWinModal(true);
+          sessionStorage.setItem(shownKey, '1');
+        }
+      } catch (_) {
+        // silent
+      }
+    };
+    run();
+  }, [user?.email]);
 
   return (
     <header className="bg-magnolia-50 dark:bg-blackswarm-800 border-b border-magnolia-200 dark:border-blackswarm-700 sticky top-0 z-50">
@@ -195,6 +226,52 @@ const UserHeader = () => {
               <button onClick={handleLogout} className="text-bonfire-600 dark:text-bonfire-400 flex items-center">
                 <LogOut className="w-4 h-4 mr-1" /> Logout
               </button>
+            </div>
+          </div>
+        )}
+        {/* Winners Popup Modal */}
+        {showWinModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white dark:bg-blackswarm-800 rounded-lg shadow-xl w-full max-w-lg">
+              <div className="px-6 py-4 border-b border-magnolia-200 dark:border-blackswarm-700 flex items-center justify-between">
+                <span className="text-lg font-semibold text-blackswarm-900 dark:text-magnolia-50 flex items-center">
+                  <Trophy className="w-5 h-5 text-bonfire-500 mr-2" />
+                  You have winning entries!
+                </span>
+                <button
+                  onClick={() => setShowWinModal(false)}
+                  className="text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="px-6 py-4 space-y-3 max-h-[60vh] overflow-auto">
+                {myWins.map((w) => (
+                  <div key={w.id} className="border border-magnolia-200 dark:border-blackswarm-700 rounded-md p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-blackswarm-600 dark:text-magnolia-400">Raffle</p>
+                        <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">{w.raffle_name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-blackswarm-600 dark:text-magnolia-400">Ticket</p>
+                        <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">#{w.ticket_number}</p>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-sm text-blackswarm-600 dark:text-magnolia-400">Won on {new Date(w.created_at).toLocaleString()}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="px-6 py-4 border-t border-magnolia-200 dark:border-blackswarm-700 flex justify-end">
+                <Link
+                  to="/user/results"
+                  onClick={() => setShowWinModal(false)}
+                  className="btn-primary"
+                >
+                  Show Results
+                </Link>
+              </div>
             </div>
           </div>
         )}

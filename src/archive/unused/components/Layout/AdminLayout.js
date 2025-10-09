@@ -1,17 +1,17 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import { Ticket, Home, Trophy, User, LogOut, Sun, Moon } from 'lucide-react';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { useTheme } from '../../../../../contexts/ThemeContext';
+import { Shield, BarChart3, Settings, Users, FileText, LogOut, Sun, Moon } from 'lucide-react';
 
-const UserLayout = ({ children }) => {
+const AdminLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const navigation = [
-    { name: 'Home', href: '/user', icon: Home },
-    { name: 'Join Raffles', href: '/user/join', icon: Ticket },
-    { name: 'Results', href: '/user/results', icon: Trophy },
-    { name: 'Profile', href: '/user/profile', icon: User },
+    { name: 'Dashboard', href: '/admin', icon: BarChart3 },
+    { name: 'Raffle Management', href: '/admin/raffles', icon: Settings },
+    { name: 'User Management', href: '/admin/users', icon: Users },
+    { name: 'Reports', href: '/admin/reports', icon: FileText },
   ];
 
   return (
@@ -23,11 +23,11 @@ const UserLayout = ({ children }) => {
             {/* Logo */}
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
-                <div className="bg-primary-600 p-2 rounded-lg">
-                  <Ticket className="w-6 h-6 text-white" />
+                <div className="bg-red-600 p-2 rounded-lg">
+                  <Shield className="w-6 h-6 text-white" />
                 </div>
                 <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
-                  MamaMo Raffle
+                  Admin Panel
                 </span>
               </div>
             </div>
@@ -40,7 +40,7 @@ const UserLayout = ({ children }) => {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="flex items-center text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
+                    className="flex items-center text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
                   >
                     <Icon className="w-4 h-4 mr-2" />
                     {item.name}
@@ -49,7 +49,7 @@ const UserLayout = ({ children }) => {
               })}
             </div>
 
-            {/* User Menu */}
+            {/* Admin Menu */}
             <div className="flex items-center space-x-4">
               <button
                 onClick={toggleTheme}
@@ -60,7 +60,7 @@ const UserLayout = ({ children }) => {
               
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-700 dark:text-gray-300">
-                  Welcome, {user?.name}
+                  Admin: {user?.name}
                 </span>
                 <button
                   onClick={logout}
@@ -82,7 +82,7 @@ const UserLayout = ({ children }) => {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                  className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
                 >
                   <Icon className="w-4 h-4 mr-3" />
                   {item.name}
@@ -101,4 +101,4 @@ const UserLayout = ({ children }) => {
   );
 };
 
-export default UserLayout;
+export default AdminLayout;

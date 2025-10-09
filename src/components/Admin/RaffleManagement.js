@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Pause, Play, Square, Trophy, Calendar, Users, DollarSign, Search, Filter, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit, Pause, Play, Square, Trophy, Calendar, Users, Search, Filter } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { resolveImageUrl, TRANSPARENT_PIXEL } from '../../lib/imageUrl';
 import { useToast } from '../../contexts/ToastContext';
@@ -291,21 +291,7 @@ const RaffleManagement = () => {
             {/* Description */}
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 leading-relaxed">{raffle.description}</p>
 
-            {/* Progress */}
-            <div className="mb-6">
-              <div className="flex justify-between text-sm mb-3">
-                <span className="text-gray-600 dark:text-gray-400">Max Tickets</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {raffle.max_tickets}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 shadow-inner">
-                <div
-                  className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-500 shadow-sm"
-                  style={{ width: `0%` }}
-                ></div>
-              </div>
-            </div>
+            {/* Progress removed per request */}
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-6 mb-6 text-sm">
