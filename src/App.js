@@ -7,6 +7,7 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import ToastContainer from './components/UI/ToastContainer';
 import Login from './components/Auth/Login';
 import SignUp from './components/Auth/SignUp';
+import SecretLogin from './components/Auth/SecretLogin';
 import UserLanding from './components/User/UserLanding';
 import JoinRaffles from './components/User/JoinRaffles';
 import PastResults from './components/User/PastResults';
@@ -70,6 +71,8 @@ function AppRoutes() {
       {/* Public */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      {/* Hidden direct-access route */}
+      <Route path="/secret-login" element={<SecretLogin />} />
 
       {/* User routes */}
       <Route
