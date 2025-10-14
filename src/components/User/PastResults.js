@@ -376,19 +376,12 @@ const PastResults = () => {
               )}
               {!raffleWinnersLoading && Array.isArray(raffleWinners) && raffleWinners.map((w, idx) => (
                 <div key={w.id || idx} className="border border-gray-200 dark:border-gray-700 rounded-md p-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-start">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Winner</p>
-                      <p className="font-medium text-gray-900 dark:text-white">{w.user_name || w.user_email || 'Unknown'}</p>
-                    </div>
-                    <div className="text-right">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Ticket</p>
                       <p className="font-medium text-gray-900 dark:text-white">#{w.ticket_number || '—'}</p>
                     </div>
                   </div>
-                  {w.user_email && (
-                    <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">{w.user_email}</div>
-                  )}
                   {w.created_at && (
                     <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">Won on {new Date(w.created_at).toLocaleString()}</div>
                   )}
@@ -402,19 +395,12 @@ const PastResults = () => {
                   {Array.isArray(consolationWinners) && consolationWinners.length > 0 ? (
                     consolationWinners.map((w, idx) => (
                       <div key={w.id || `c-${idx}`} className="border border-gray-200 dark:border-gray-700 rounded-md p-4 mb-2">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-start">
                           <div>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">Winner</p>
-                            <p className="font-medium text-gray-900 dark:text-white">{w.user_name || w.user_email || 'Unknown'}</p>
-                          </div>
-                          <div className="text-right">
                             <p className="text-xs text-gray-600 dark:text-gray-400">Ticket</p>
                             <p className="font-medium text-gray-900 dark:text-white">#{w.ticket_number || '—'}</p>
                           </div>
                         </div>
-                        {w.user_email && (
-                          <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">{w.user_email}</div>
-                        )}
                         {w.created_at && (
                           <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">Won on {new Date(w.created_at).toLocaleString()}</div>
                         )}
