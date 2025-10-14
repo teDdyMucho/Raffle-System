@@ -186,9 +186,18 @@ const PastResults = () => {
         .eq('raffle_name', raffle.title || '')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      setRaffleWinners(Array.isArray(data) ? data : []);
+      const allWinners = Array.isArray(data) ? data : [];
+      const mainWinners = allWinners.filter((w) => w?.winner_type !== 'consolation');
+      setRaffleWinners(mainWinners);
       // Try to load consolation winners by common patterns
       let cons = [];
+      const { data: cons0, error: consErr0 } = await supabase
+        .from('winners')
+        .select('*')
+        .eq('raffle_name', raffle.title || '')
+        .eq('winner_type', 'consolation')
+        .order('created_at', { ascending: false });
+      if (!consErr0 && Array.isArray(cons0)) cons = cons0;
       // Attempt 1: boolean flag is_consolation
       const { data: cons1, error: consErr1 } = await supabase
         .from('winners')
@@ -196,7 +205,7 @@ const PastResults = () => {
         .eq('raffle_name', raffle.title || '')
         .eq('is_consolation', true)
         .order('created_at', { ascending: false });
-      if (!consErr1 && Array.isArray(cons1)) cons = cons1;
+      if (cons.length === 0 && !consErr1 && Array.isArray(cons1)) cons = cons1;
       // Attempt 2: prize_type field
       if (cons.length === 0) {
         const { data: cons2, error: consErr2 } = await supabase
