@@ -15,19 +15,15 @@ import {
   Settings
 } from 'lucide-react';
 
-const AgentHeader = ({ currentPage, onNavigate, walletOnly = false }) => {
+const AgentHeader = ({ currentPage, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
-  const navigationItems = walletOnly
-    ? [
-        { id: 'wallet', label: 'Wallet Requests', icon: DollarSign },
-      ]
-    : [
-        { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-        { id: 'commission', label: 'Commission Tracker', icon: DollarSign },
-      ];
+  const navigationItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+    { id: 'commission', label: 'Commission Tracker', icon: DollarSign },
+  ];
   const visibleMd = navigationItems.slice(0, 3);
   const overflowMd = navigationItems.slice(3);
   const [isMoreOpen, setIsMoreOpen] = useState(false);

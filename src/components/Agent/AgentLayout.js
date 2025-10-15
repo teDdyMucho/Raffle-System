@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
 import AgentHeader from './AgentHeader';
 import AgentDashboard from './AgentDashboard';
-import AgentWalletDashboard from './AgentWalletDashboard';
 import ImageManager from './ImageManager';
 import AgentProfile from './AgentProfile';
 import AgentSettings from './AgentSettings';
@@ -10,19 +8,13 @@ import AgentCommissionTracker from './AgentCommissionTracker';
 
 const AgentLayout = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const walletOnly = params.get('walletOnly') === '1';
 
   const handleNavigation = (pageId) => {
-    if (walletOnly && pageId !== 'wallet') return; // lock to wallet when flagged
     setCurrentPage(pageId);
   };
 
   const renderCurrentPage = () => {
     switch (currentPage) {
-      case 'wallet':
-        return walletOnly ? <AgentWalletDashboard /> : <AgentDashboard onNavigate={handleNavigation} />;
       case 'dashboard':
         return <AgentDashboard onNavigate={handleNavigation} />;
       case 'media-library':
@@ -71,14 +63,9 @@ const AgentLayout = () => {
     }
   };
 
-  useEffect(() => {
-    if (walletOnly) setCurrentPage('wallet');
-    if (!walletOnly && currentPage === 'wallet') setCurrentPage('dashboard');
-  }, [walletOnly, currentPage]);
-
   return (
     <div className="min-h-screen bg-magnolia-100 dark:bg-blackswarm-900">
-      <AgentHeader walletOnly={walletOnly} currentPage={currentPage} onNavigate={handleNavigation} />
+      <AgentHeader currentPage={currentPage} onNavigate={handleNavigation} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderCurrentPage()}
       </main>
