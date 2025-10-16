@@ -115,8 +115,24 @@ const JoinRaffles = () => {
     if (ticketNumber.length !== 6) return;
     try {
       setJoining(true);
-      // 1) Debit wallet first based on raffle ticket price
-      const priceCents = toCents(selectedRaffle.ticket_price || 0);
+      // 1) Debit wallet first based on raffle ticket price (robust parsing)
+      const rawPrice =
+        selectedRaffle.ticket_price ??
+        selectedRaffle.price ??
+        selectedRaffle.entry_price ??
+        0;
+      const parseToCents = (v) => {
+        if (typeof v === 'number') return Math.round(v * 100);
+        if (typeof v === 'string') {
+          const cleaned = v.replace(/[₱,\s]/g, '');
+          const m = cleaned.match(/-?\d+(?:\.\d+)?/);
+          const num = m ? Number(m[0]) : 0;
+          return Math.round(num * 100);
+        }
+        const num = Number(v) || 0;
+        return Math.round(num * 100);
+      };
+      const priceCents = parseToCents(rawPrice);
       if (!user?.id) throw new Error('Not authenticated');
       const debitRes = await tryDebitForPurchase(user.id, priceCents);
       if (!debitRes.success) {
@@ -133,6 +149,10 @@ const JoinRaffles = () => {
         user_id: user?.id || null,
         user_email: user?.email || 'guest@example.com',
         user_name: user?.name || 'Guest',
+        // store price snapshot for reporting
+        price_cents: priceCents,
+        ticket_price_cents: priceCents,
+        price: Number((priceCents / 100).toFixed(2)),
       };
       const { error } = await supabase.from('tickets').insert([payload]);
       if (error) {

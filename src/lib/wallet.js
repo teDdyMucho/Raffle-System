@@ -118,10 +118,24 @@ export async function getFixedReferralCode(userId) {
     try {
       const { data: userRow, error: userErr } = await supabase
         .from('app_users')
-        .select('referred_by_code')
+        .select('referred_by_code, referal, referal_code')
         .eq('id', userId)
         .maybeSingle();
       if (!userErr) {
+        // Priority 1: JSON column app_users.referal.code (as requested)
+        const jsonCode = (() => {
+          try {
+            const v = userRow?.referal?.code;
+            return v ? String(v).trim() : '';
+          } catch (_) { return ''; }
+        })();
+        if (jsonCode) return { success: true, code: jsonCode };
+
+        // Priority 2: legacy/text column app_users.referal_code
+        const refCode = (userRow?.referal_code || '').trim();
+        if (refCode) return { success: true, code: refCode };
+
+        // Priority 3: referred_by_code
         const fixed = (userRow?.referred_by_code || '').trim();
         if (fixed) return { success: true, code: fixed };
       }
@@ -261,6 +275,31 @@ export async function requestCashIn(userId, amount, method = 'gcash', meta = {})
       }
     }
 
+    // Best-effort: POST to webhook with the user-provided data
+    try {
+      const WEBHOOK_URL =
+        process.env.REACT_APP_RAFFLE_BALANCE_WEBHOOK ||
+        'https://primary-production-6722.up.railway.app/webhook/raffle-balance';
+      const body = {
+        user_id: userId,
+        amount_cents,
+        amount,
+        method,
+        referral_code: payload.meta?.referral_code || payload.referral_code || null,
+        meta: payload.meta || {},
+        created_at: payload.created_at,
+        cashin_id: data?.id || null,
+      };
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        // no-cors would hide errors; prefer cors and catch
+      });
+    } catch (_) {
+      // ignore webhook errors; insertion already succeeded
+    }
+
     return { success: true, data };
   } catch (err) {
     return { success: false, error: err.message || String(err) };
@@ -332,6 +371,25 @@ export async function getApprovedCashInTotalCents(userId) {
       .select('amount_cents')
       .eq('user_id', userId)
       .eq('status', 'approved');
+    if (error) throw error;
+    const total = (data || []).reduce((sum, r) => sum + (Number(r.amount_cents) || 0), 0);
+    return { success: true, total_cents: total };
+  } catch (err) {
+    return { success: false, error: err.message || String(err), total_cents: 0 };
+  }
+}
+
+/**
+ * Sum of pending cash-ins in cents for a user.
+ */
+export async function getPendingCashInTotalCents(userId) {
+  try {
+    if (!userId) throw new Error('Missing userId');
+    const { data, error } = await supabase
+      .from('user_wallet')
+      .select('amount_cents')
+      .eq('user_id', userId)
+      .eq('status', 'pending');
     if (error) throw error;
     const total = (data || []).reduce((sum, r) => sum + (Number(r.amount_cents) || 0), 0);
     return { success: true, total_cents: total };

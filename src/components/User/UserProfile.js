@@ -5,7 +5,7 @@ import cashinAd from '../../images/cashinads.png';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, Ticket, Trophy, Calendar, Edit3, Save, X, Plus, Wallet as WalletIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
-import { requestCashIn, listCashIns, getUserBalanceCents, getApprovedCashInTotalCents, fromCents, getFixedReferralCode } from '../../lib/wallet';
+import { requestCashIn, listCashIns, getUserBalanceCents, fromCents, getFixedReferralCode } from '../../lib/wallet';
 import { useToast } from '../../contexts/ToastContext';
 
 const UserProfile = () => {
@@ -29,6 +29,7 @@ const UserProfile = () => {
 
   // Wallet state
   const [balanceCents, setBalanceCents] = useState(0);
+  const [spentCents, setSpentCents] = useState(0);
   const [walletLoading, setWalletLoading] = useState(true);
   const [cashIns, setCashIns] = useState([]);
   const [cashInForm, setCashInForm] = useState({ amount: '', method: 'gcash', referral_code: '' });
@@ -243,18 +244,12 @@ const UserProfile = () => {
         setCashIns([]);
         return;
       }
-      const [balRes, listRes, approvedRes] = await Promise.all([
+      const [balRes, listRes] = await Promise.all([
         getUserBalanceCents(uid),
-        listCashIns(uid, { limit: 5 }),
-        getApprovedCashInTotalCents(uid)
+        listCashIns(uid, { limit: 5 })
       ]);
       if (balRes.success) setBalanceCents(balRes.balance_cents || 0);
       if (listRes.success) setCashIns(listRes.data || []);
-      // Reconcile totalSpent from wallet: approved cash-ins minus current balance
-      if (approvedRes?.success && balRes?.success) {
-        const spentCents = Math.max(0, (approvedRes.total_cents || 0) - (balRes.balance_cents || 0));
-        setStats(prev => ({ ...prev, totalSpent: fromCents(spentCents) }));
-      }
     } catch (_) {
       // ignore; keep UI minimal
     } finally {
@@ -269,21 +264,30 @@ const UserProfile = () => {
         const uid = user?.id;
         if (!email && !uid) return;
 
-        // 1) Fetch user tickets (try by user_id first, then fall back to email)
+        // 1) Fetch user tickets with fields that may contain price info
         let ticketsData = [];
         let tErr = null;
         try {
           if (uid) {
-            const r1 = await supabase.from('tickets').select('raffle_id').eq('user_id', uid);
+            const r1 = await supabase
+              .from('tickets')
+              .select('*')
+              .eq('user_id', uid);
             if (r1.error) throw r1.error;
             ticketsData = r1.data || [];
             if ((!ticketsData || ticketsData.length === 0) && email) {
-              const r2 = await supabase.from('tickets').select('raffle_id').ilike('user_email', email);
+              const r2 = await supabase
+                .from('tickets')
+                .select('*')
+                .ilike('user_email', email);
               ticketsData = r2.data || [];
               tErr = r2.error || null;
             }
           } else {
-            const r = await supabase.from('tickets').select('raffle_id').ilike('user_email', email);
+            const r = await supabase
+              .from('tickets')
+              .select('*')
+              .ilike('user_email', email);
             ticketsData = r.data || [];
             tErr = r.error || null;
           }
@@ -293,19 +297,20 @@ const UserProfile = () => {
         if (tErr) throw tErr;
 
         const totalTickets = Array.isArray(ticketsData) ? ticketsData.length : 0;
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.log('[Stats] tickets for user:', totalTickets, { sample: ticketsData[0] });
+        }
         if (totalTickets === 0) {
           setStats({ totalTickets: 0, totalSpent: 0 });
           return;
         }
 
-        // 2) Sum prices per raffle_id
-        const counts = ticketsData.reduce((acc, row) => {
-          const rid = row.raffle_id;
-          if (!rid) return acc;
-          acc[rid] = (acc[rid] || 0) + 1;
-          return acc;
-        }, {});
-        const raffleIds = Object.keys(counts);
+        const raffleIds = Array.from(new Set((ticketsData || []).map(row => row.raffle_id).filter(Boolean)));
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.log('[Stats] raffleIds:', raffleIds);
+        }
 
         if (raffleIds.length === 0) {
           setStats({ totalTickets, totalSpent: 0 });
@@ -316,7 +321,7 @@ const UserProfile = () => {
         {
           const rA = await supabase
             .from('raffles')
-            .select('id, ticket_price, title, name, raffle_name, raffleTitle, raffle, event_name, image_url')
+            .select('id, ticket_price, ticket_price_cents, price, price_cents, entry_price, amount, cost_cents, title, name, raffle_name, raffleTitle, raffle, event_name, image_url')
             .in('id', raffleIds);
           if (rA.error) throw rA.error;
           rafflesData = rA.data || [];
@@ -332,7 +337,7 @@ const UserProfile = () => {
           if (numericIds.length > 0) {
             const rB = await supabase
               .from('raffles')
-              .select('id, ticket_price, title, name, raffle_name, raffleTitle, raffle, event_name, image_url')
+              .select('id, ticket_price, ticket_price_cents, price, price_cents, entry_price, amount, cost_cents, title, name, raffle_name, raffleTitle, raffle, event_name, image_url')
               .in('id', numericIds);
             if (!rB.error) {
               rafflesData = rB.data || [];
@@ -371,10 +376,42 @@ const UserProfile = () => {
           }
         }
 
-        const priceMap = new Map((rafflesData || []).map(r => [String(r.id), Number(r.ticket_price) || 0]));
-        const totalSpent = raffleIds.reduce((sum, rid) => sum + (counts[rid] * (priceMap.get(String(rid)) || 0)), 0);
+        const raffleMap = new Map((rafflesData || []).map(r => [String(r.id), r]));
+        // Sum per-ticket resolved price (prefer cents)
+        const totalSpentCentsPerTicket = (ticketsData || []).reduce((sum, t) => {
+          const r = raffleMap.get(String(t.raffle_id)) || {};
+          const cents = resolvePriceCents(r, t);
+          return sum + (Number.isFinite(cents) && cents != null ? cents : 0);
+        }, 0);
 
-        setStats({ totalTickets, totalSpent });
+        // Fallback: if per-ticket resolution yields 0, multiply counts by raffle price
+        let totalSpentCents = totalSpentCentsPerTicket;
+        if (!totalSpentCents || totalSpentCents <= 0) {
+          const counts = (ticketsData || []).reduce((acc, row) => {
+            const rid = row.raffle_id;
+            if (!rid) return acc;
+            acc[rid] = (acc[rid] || 0) + 1;
+            return acc;
+          }, {});
+          for (const rid of Object.keys(counts)) {
+            const r = raffleMap.get(String(rid)) || {};
+            const cents = resolvePriceCents(r, {});
+            if (Number.isFinite(cents) && cents != null) {
+              totalSpentCents += counts[rid] * cents;
+            } else {
+              const num = Number(r.ticket_price || r.price || r.entry_price || 0);
+              if (Number.isFinite(num) && num > 0) totalSpentCents += counts[rid] * Math.round(num * 100);
+            }
+          }
+        }
+
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.log('[Stats] totals cents:', { perTicket: totalSpentCentsPerTicket, final: totalSpentCents });
+        }
+
+        setSpentCents(totalSpentCents);
+        setStats({ totalTickets, totalSpent: fromCents(totalSpentCents) });
       } catch (err) {
         // eslint-disable-next-line no-console
         console.warn('[Profile] Failed to fetch ticket stats:', err?.message || err);
@@ -383,6 +420,8 @@ const UserProfile = () => {
 
     fetchStats();
   }, [user?.email, user?.id]);
+
+  
 
   // Fetch wallet info on mount / user change
   useEffect(() => {
@@ -680,6 +719,20 @@ const UserProfile = () => {
         setTicketRows(rows);
         // Keep Total Tickets card in sync with what we actually display
         setStats(prev => ({ ...prev, totalTickets: rows.length }));
+        // Robust fallback: compute total spent from row.prize display if available
+        try {
+          const parseCents = (s) => {
+            if (!s || s === '₱—') return 0;
+            const m = String(s).match(/-?\d+(?:\.\d+)?/);
+            if (!m) return 0;
+            return Math.round(Number(m[0]) * 100);
+          };
+          const sumCents = (rows || []).reduce((acc, r) => acc + parseCents(r.prize), 0);
+          if (sumCents > 0) {
+            setSpentCents(sumCents);
+            setStats(prev => ({ ...prev, totalSpent: fromCents(sumCents) }));
+          }
+        } catch (_) { /* ignore */ }
         setPage(1);
       } catch (err) {
         // eslint-disable-next-line no-console
