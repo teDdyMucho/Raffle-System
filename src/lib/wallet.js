@@ -45,6 +45,58 @@ export async function creditBalanceCents(userId, amount_cents) {
   } catch (err) {
     return { success: false, error: err.message || String(err) };
   }
+
+}
+export async function recomputeAllAgentBalances() {
+  try {
+    const { data: agents, error: agentsErr } = await supabase
+      .from('app_users')
+      .select('id, referal_code, commission_bps, commission_pct');
+    if (agentsErr) throw agentsErr;
+    const byId = Array.isArray(agents) ? agents : [];
+    for (const a of byId) {
+      const code = (a?.referal_code || '').trim();
+      if (!code) continue;
+      const bps = Number.isFinite(Number(a?.commission_bps))
+        ? Math.max(0, Math.floor(Number(a.commission_bps)))
+        : (Number.isFinite(Number(a?.commission_pct)) ? Math.max(0, Math.floor(Number(a.commission_pct) * 100)) : 1000);
+      const all = new Map();
+      const { data: d1, error: e1 } = await supabase
+        .from('user_wallet')
+        .select('id, amount_cents, referral_code, referal_code, meta, created_at')
+        .eq('status', 'approved')
+        .or(`referral_code.eq.${code},referal_code.eq.${code}`);
+      if (e1) throw e1;
+      (d1 || []).forEach(r => all.set(r.id, r));
+      try {
+        const { data: d2 } = await supabase
+          .from('user_wallet')
+          .select('id, amount_cents, meta, created_at')
+          .eq('status', 'approved')
+          .contains('meta', { referral_code: code });
+        (d2 || []).forEach(r => all.set(r.id, r));
+      } catch (_) {}
+      try {
+        const { data: d3 } = await supabase
+          .from('user_wallet')
+          .select('id, amount_cents, meta, created_at')
+          .eq('status', 'approved')
+          .contains('meta', { referal_code: code });
+        (d3 || []).forEach(r => all.set(r.id, r));
+      } catch (_) {}
+      const items = Array.from(all.values());
+      const totalCents = items.reduce((s, r) => s + (Number(r.amount_cents) || 0), 0);
+      const commissionCents = Math.round(totalCents * (bps / 10000));
+      const { error: upErr } = await supabase
+        .from('app_users')
+        .update({ balance_cents: commissionCents })
+        .eq('id', a.id);
+      if (upErr) throw upErr;
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message || String(err) };
+  }
 }
 
 /**
@@ -378,7 +430,7 @@ export async function getApprovedCashInTotalCents(userId) {
     return { success: false, error: err.message || String(err), total_cents: 0 };
   }
 }
-
+ 
 /**
  * Sum of pending cash-ins in cents for a user.
  */

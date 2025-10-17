@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Ticket, Trophy, DollarSign, TrendingUp, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Users, Ticket, Trophy, DollarSign, TrendingUp, Calendar, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { recomputeAllAgentBalances } from '../../lib/wallet';
 
 const AdminOverview = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -79,78 +80,97 @@ const AdminOverview = () => {
     }
   };
 
+  const [recomputeLoading, setRecomputeLoading] = useState(false);
+  const handleRecompute = async () => {
+    try {
+      setRecomputeLoading(true);
+      const r = await recomputeAllAgentBalances();
+      if (!r?.success) throw new Error(r?.error || 'Failed to recompute');
+      alert('All agent balances have been recomputed.');
+    } catch (err) {
+      alert(`Error: ${err.message || String(err)}`);
+    } finally {
+      setRecomputeLoading(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Admin Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Welcome back! Here's what's happening with your raffles today.
-        </p>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 via-red-600 to-red-700 p-8 text-white shadow-large">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10">
+          <h1 className="text-4xl font-bold mb-3 animate-slide-in">Admin Dashboard</h1>
+          <p className="text-red-100 text-lg animate-slide-in" style={{animationDelay: '0.1s'}}>
+            Welcome back! Here's what's happening with your raffles today.
+          </p>
+        </div>
+        <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full animate-float"></div>
+        <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card">
+        <div className="card group hover:scale-105 animate-slide-in" style={{animationDelay: '0.1s'}}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalUsers.toLocaleString()}</p>
+              <p className="text-3xl font-bold gradient-text">{stats.totalUsers.toLocaleString()}</p>
             </div>
-            <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
-              <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-2xl shadow-medium group-hover:shadow-large transition-all duration-300 animate-pulse-subtle">
+              <Users className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="mt-4 flex items-center">
             <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 dark:text-green-400">+{stats.monthlyGrowth}% this month</span>
+            <span className="text-sm text-green-600 dark:text-green-400 font-medium">+{stats.monthlyGrowth}% this month</span>
           </div>
         </div>
 
-        <div className="card">
+        <div className="card group hover:scale-105 animate-slide-in" style={{animationDelay: '0.2s'}}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Tickets Sold</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalTicketsSold.toLocaleString()}</p>
+              <p className="text-3xl font-bold gradient-text">{stats.totalTicketsSold.toLocaleString()}</p>
             </div>
-            <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full">
-              <Ticket className="w-6 h-6 text-green-600 dark:text-green-400" />
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-4 rounded-2xl shadow-medium group-hover:shadow-large transition-all duration-300 animate-pulse-subtle">
+              <Ticket className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="mt-4 flex items-center">
             <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 dark:text-green-400">+8.2% from last week</span>
+            <span className="text-sm text-green-600 dark:text-green-400 font-medium">+8.2% from last week</span>
           </div>
         </div>
 
-        <div className="card">
+        <div className="card group hover:scale-105 animate-slide-in" style={{animationDelay: '0.3s'}}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Raffles</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activeRaffles}</p>
+              <p className="text-3xl font-bold gradient-text">{stats.activeRaffles}</p>
             </div>
-            <div className="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-full">
-              <Trophy className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-4 rounded-2xl shadow-medium group-hover:shadow-large transition-all duration-300 animate-pulse-subtle">
+              <Trophy className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-sm text-gray-600 dark:text-gray-400">{stats.completedRaffles} completed</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">{stats.completedRaffles} completed</span>
           </div>
         </div>
 
-        <div className="card">
+        <div className="card group hover:scale-105 animate-slide-in" style={{animationDelay: '0.4s'}}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">₱{stats.totalRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-bold gradient-text">₱{stats.totalRevenue.toLocaleString()}</p>
             </div>
-            <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full">
-              <DollarSign className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-4 rounded-2xl shadow-medium group-hover:shadow-large transition-all duration-300 animate-pulse-subtle">
+              <DollarSign className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="mt-4 flex items-center">
             <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 dark:text-green-400">+15.3% this month</span>
+            <span className="text-sm text-green-600 dark:text-green-400 font-medium">+15.3% this month</span>
           </div>
         </div>
       </div>
@@ -243,42 +263,50 @@ const AdminOverview = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="card">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Quick Actions</h2>
+      <div className="card animate-slide-in" style={{animationDelay: '0.6s'}}>
+        <h2 className="text-2xl font-bold gradient-text mb-8">Quick Actions</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <a
             href="/admin/raffles"
-            className="flex items-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-red-500 dark:hover:border-red-400 transition-colors duration-200 group"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-medium hover:shadow-large transition-all duration-300 hover:scale-105"
           >
-            <Calendar className="w-8 h-8 text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400 mr-3" />
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">Create New Raffle</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Set up a new raffle campaign</p>
-            </div>
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <Calendar className="w-10 h-10 mb-4 animate-float" />
+            <h3 className="font-bold text-lg mb-2">Create New Raffle</h3>
+            <p className="text-blue-100 text-sm">Set up a new raffle campaign</p>
           </a>
 
           <a
             href="/admin/users"
-            className="flex items-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-red-500 dark:hover:border-red-400 transition-colors duration-200 group"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-white shadow-medium hover:shadow-large transition-all duration-300 hover:scale-105"
           >
-            <Users className="w-8 h-8 text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400 mr-3" />
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">Manage Users</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">View and manage user accounts</p>
-            </div>
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <Users className="w-10 h-10 mb-4 animate-float" style={{animationDelay: '0.5s'}} />
+            <h3 className="font-bold text-lg mb-2">Manage Users</h3>
+            <p className="text-green-100 text-sm">View and manage user accounts</p>
           </a>
 
           <a
             href="/admin/reports"
-            className="flex items-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-red-500 dark:hover:border-red-400 transition-colors duration-200 group"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white shadow-medium hover:shadow-large transition-all duration-300 hover:scale-105"
           >
-            <TrendingUp className="w-8 h-8 text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400 mr-3" />
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">View Reports</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Generate detailed analytics</p>
-            </div>
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <TrendingUp className="w-10 h-10 mb-4 animate-float" style={{animationDelay: '1s'}} />
+            <h3 className="font-bold text-lg mb-2">View Reports</h3>
+            <p className="text-purple-100 text-sm">Generate detailed analytics</p>
           </a>
+
+          <button
+            onClick={handleRecompute}
+            disabled={recomputeLoading}
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 to-red-600 p-6 text-white shadow-medium hover:shadow-large transition-all duration-300 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <RefreshCw className={`w-10 h-10 mb-4 ${recomputeLoading ? 'animate-spin' : 'animate-float'}`} style={{animationDelay: '1.5s'}} />
+            <h3 className="font-bold text-lg mb-2">Recompute Balances</h3>
+            <p className="text-red-100 text-sm">Update all agents' balance_cents</p>
+          </button>
         </div>
       </div>
     </div>
