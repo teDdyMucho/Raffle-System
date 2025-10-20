@@ -134,115 +134,123 @@ const AgentCommissionTracker = ({ compact = false }) => {
   const canSubmit = !withdrawLoading && amountValid && accountValid && (payoutMethod === 'gcash' || payoutMethod === 'bank');
 
   return (
-    <div className={`card animate-fade-in ${compact ? '' : ''}`}>
-      <div className={`${compact ? 'p-4' : 'p-6'} border-b border-magnolia-200 dark:border-blackswarm-700 relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent"></div>
-        <div className="relative z-10">
-          <h2 className={`${compact ? 'text-lg' : 'text-3xl'} font-bold gradient-text animate-slide-in`}>Commission Tracker</h2>
-          <p className={`${compact ? 'text-xs' : 'text-sm'} text-blackswarm-600 dark:text-magnolia-400 mt-2 animate-slide-in`} style={{animationDelay: '0.1s'}}>{(summary.rate*100).toFixed(2)}% commission on approved cash-ins attributed to your referral code.</p>
+    <div className={`${compact ? 'max-w-4xl mx-auto' : 'max-w-6xl mx-auto'} px-4 sm:px-6 lg:px-8 py-8`}>
+      <div className="dashboard-header animate-fade-in mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className={`${compact ? 'text-2xl' : 'text-3xl'} font-bold mb-2`}>Commission Tracker</h1>
+            <p className="text-slate-300 text-base">
+              {(summary.rate*100).toFixed(2)}% commission on approved cash-ins attributed to your referral code
+            </p>
+          </div>
+          <div className="mt-4 sm:mt-0">
+            <div className="text-right">
+              <div className="text-2xl font-bold">₱{fromCents(summary.commissionCents).toLocaleString()}</div>
+              <div className="text-slate-300 text-sm">Your Commission</div>
+            </div>
+          </div>
         </div>
-        <div className="absolute -top-2 -right-2 w-16 h-16 bg-red-500/10 rounded-full animate-float"></div>
       </div>
 
-      <div className={`${compact ? 'p-4 space-y-4' : 'p-6 space-y-6'}`}>
-        {/* Stats */}
-        <div className={`grid grid-cols-1 ${compact ? 'sm:grid-cols-3 gap-3' : 'sm:grid-cols-3 gap-4'}`}>
-          <div className={`card group hover:scale-105 animate-slide-in ${compact ? 'p-3' : 'p-4'}`} style={{animationDelay: '0.2s'}}>
-            <div className="flex items-center justify-between">
-              <span className={`${compact ? 'text-xs' : 'text-sm'} text-blackswarm-600 dark:text-magnolia-400 font-medium`}>Unique Referred Users</span>
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-2 rounded-xl">
-                <Users className={`${compact ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-white`} />
-              </div>
-            </div>
-            <div className={`mt-2 ${compact ? 'text-xl' : 'text-3xl'} font-bold gradient-text`}>{summary.uniqueUsers}</div>
-          </div>
-          <div className={`card group hover:scale-105 animate-slide-in ${compact ? 'p-3' : 'p-4'}`} style={{animationDelay: '0.3s'}}>
-            <div className="flex items-center justify-between">
-              <span className={`${compact ? 'text-xs' : 'text-sm'} text-blackswarm-600 dark:text-magnolia-400 font-medium`}>Total Cash-ins</span>
-              <div className="bg-gradient-to-br from-green-500 to-green-600 p-2 rounded-xl">
-                <span className={`${compact ? 'text-xs' : 'text-sm'} font-bold text-white`}>₱</span>
-              </div>
-            </div>
-            <div className={`mt-2 ${compact ? 'text-xl' : 'text-3xl'} font-bold gradient-text`}>₱{fromCents(summary.totalCents).toLocaleString()}</div>
-          </div>
-          <div className={`card group hover:scale-105 animate-slide-in ${compact ? 'p-3' : 'p-4'}`} style={{animationDelay: '0.4s'}}>
-            <div className="flex items-center justify-between">
-              <span className={`${compact ? 'text-xs' : 'text-sm'} text-blackswarm-600 dark:text-magnolia-400 font-medium`}>Your Commission ({(summary.rate*100).toFixed(2)}%)</span>
-              <div className="bg-gradient-to-br from-red-500 to-red-600 p-2 rounded-xl animate-pulse-subtle">
-                <span className={`${compact ? 'text-xs' : 'text-sm'} font-bold text-white`}>₱</span>
-              </div>
-            </div>
-            <div className={`mt-2 ${compact ? 'text-xl' : 'text-3xl'} font-bold text-red-600 animate-pulse-subtle`}>₱{fromCents(summary.commissionCents).toLocaleString()}</div>
-          </div>
+      {/* Stats Grid */}
+      <div className={`grid grid-cols-1 ${compact ? 'sm:grid-cols-3 gap-4' : 'sm:grid-cols-3 gap-6'} mb-8`}>
+        <div className="stat-card animate-slide-in" style={{animationDelay: '0.1s'}}>
+          <div className="stat-label">Unique Referred Users</div>
+          <div className="stat-value">{summary.uniqueUsers}</div>
         </div>
+        
+        <div className="stat-card animate-slide-in" style={{animationDelay: '0.2s'}}>
+          <div className="stat-label">Total Cash-ins</div>
+          <div className="stat-value">₱{fromCents(summary.totalCents).toLocaleString()}</div>
+        </div>
+        
+        <div className="stat-card animate-slide-in" style={{animationDelay: '0.3s'}}>
+          <div className="stat-label">Commission Rate</div>
+          <div className="stat-value">{(summary.rate*100).toFixed(2)}%</div>
+        </div>
+      </div>
 
-        <div className="flex items-center justify-between animate-slide-in" style={{animationDelay: '0.5s'}}>
-          <div className={`${compact ? 'text-xs' : 'text-sm'} text-blackswarm-600 dark:text-magnolia-400`}>
-            Referral code: <span className="font-mono font-semibold gradient-text bg-gradient-to-r from-red-500 to-red-600 px-2 py-1 rounded text-white">{code || 'N/A'}</span>
+      {/* Actions Bar */}
+      <div className="card mb-6 animate-slide-in" style={{animationDelay: '0.4s'}}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4 sm:mb-0">
+            <div className="text-sm text-slate-600 dark:text-slate-400">
+              Referral code: <span className="font-mono font-semibold bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-900 dark:text-slate-100">{code || 'N/A'}</span>
+            </div>
           </div>
           <div className="flex items-center space-x-3">
             <button
               onClick={fetchData}
               disabled={loading}
-              className={`btn-secondary group ${compact ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'} rounded-xl font-medium transition-all duration-300 hover:scale-105 disabled:hover:scale-100`}
+              className="modern-button bg-slate-600 hover:bg-slate-700"
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-300'}`} /> 
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> 
               {loading ? 'Loading...' : 'Refresh'}
             </button>
             <button
               onClick={() => setShowWithdraw(true)}
-              className={`btn-primary group ${compact ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'} rounded-xl font-medium transition-all duration-300 hover:scale-105 shadow-glow`}
+              className="modern-button bg-blue-600 hover:bg-blue-700"
             >
-              <Wallet className="w-4 h-4 mr-2 group-hover:animate-float" /> 
+              <Wallet className="w-4 h-4 mr-2" /> 
               Withdraw
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Table */}
-        <div className={`overflow-x-auto border border-magnolia-200 dark:border-blackswarm-700 rounded-lg ${compact ? 'max-h-56 overflow-y-auto' : ''}`}>
-          <table className="min-w-full divide-y divide-magnolia-200 dark:divide-blackswarm-700">
-            <thead className="bg-magnolia-100 dark:bg-blackswarm-900">
-              <tr>
-                <th className={`px-4 ${compact ? 'py-1 text-[10px]' : 'py-2 text-xs'} text-left font-semibold text-blackswarm-600 dark:text-magnolia-400`}>Date</th>
-                <th className={`px-4 ${compact ? 'py-1 text-[10px]' : 'py-2 text-xs'} text-left font-semibold text-blackswarm-600 dark:text-magnolia-400`}>User</th>
-                <th className={`px-4 ${compact ? 'py-1 text-[10px]' : 'py-2 text-xs'} text-left font-semibold text-blackswarm-600 dark:text-magnolia-400`}>Amount</th>
-                <th className={`px-4 ${compact ? 'py-1 text-[10px]' : 'py-2 text-xs'} text-left font-semibold text-blackswarm-600 dark:text-magnolia-400`}>Commission ({(summary.rate*100).toFixed(2)}%)</th>
-                {!compact && (
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-blackswarm-600 dark:text-magnolia-400">Source</th>
-                )}
+      {/* Transaction Table */}
+      <div className="card animate-slide-in" style={{animationDelay: '0.5s'}}>
+        <h2 className="section-title">Recent Transactions</h2>
+        <div className={`overflow-x-auto ${compact ? 'max-h-56 overflow-y-auto' : ''}`}>
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <th className={`px-4 ${compact ? 'py-2 text-xs' : 'py-3 text-sm'} text-left font-medium text-slate-600 dark:text-slate-400`}>Date</th>
+                <th className={`px-4 ${compact ? 'py-2 text-xs' : 'py-3 text-sm'} text-left font-medium text-slate-600 dark:text-slate-400`}>User</th>
+                <th className={`px-4 ${compact ? 'py-2 text-xs' : 'py-3 text-sm'} text-left font-medium text-slate-600 dark:text-slate-400`}>Amount</th>
+                <th className={`px-4 ${compact ? 'py-2 text-xs' : 'py-3 text-sm'} text-left font-medium text-slate-600 dark:text-slate-400`}>Commission</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-magnolia-200 dark:divide-blackswarm-700 bg-white dark:bg-blackswarm-900">
-              {loading && (
-                <tr><td className={`px-4 ${compact ? 'py-2 text-xs' : 'py-4 text-sm'} text-blackswarm-600 dark:text-magnolia-400`} colSpan={5}>Loading...</td></tr>
-              )}
-              {!loading && rows.length === 0 && (
-                <tr><td className={`px-4 ${compact ? 'py-2 text-xs' : 'py-4 text-sm'} text-blackswarm-600 dark:text-magnolia-400`} colSpan={5}>No approved cash-ins attributed to your code yet.</td></tr>
-              )}
-              {!loading && (compact ? rows.slice(0, 8) : rows).map((r) => {
-                const amt = Number(r.amount_cents) || 0;
-                const commission = Math.round(amt * (commissionBps/10000));
-                const src = r.referral_code === code ? 'referral_code' : (r.referal_code === code ? 'referal_code' : (r.meta?.referral_code === code ? 'meta.referral_code' : 'meta.referal_code'))
-                return (
-                  <tr key={r.id}>
-                    <td className={`px-4 ${compact ? 'py-1 text-xs' : 'py-2 text-sm'} text-blackswarm-800 dark:text-magnolia-200`}>{new Date(r.created_at).toLocaleString()}</td>
-                    <td className={`px-4 ${compact ? 'py-1 text-xs' : 'py-2 text-sm'} text-blackswarm-800 dark:text-magnolia-200`}>{r.user_id.slice(0,8)}…</td>
-                    <td className={`px-4 ${compact ? 'py-1 text-xs' : 'py-2 text-sm'} text-blackswarm-800 dark:text-magnolia-200`}>₱{fromCents(amt).toLocaleString()}</td>
-                    <td className={`px-4 ${compact ? 'py-1 text-xs' : 'py-2 text-sm'} text-bonfire-600`}>₱{fromCents(commission).toLocaleString()}</td>
-                    {!compact && (
-                      <td className="px-4 py-2 text-xs text-blackswarm-500 dark:text-magnolia-500">{src}</td>
-                    )}
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className={`px-4 ${compact ? 'py-4' : 'py-8'} text-center text-slate-600 dark:text-slate-400`}>
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
+                    Loading transactions...
+                  </td>
+                </tr>
+              ) : rows.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className={`px-4 ${compact ? 'py-4' : 'py-8'} text-center text-slate-600 dark:text-slate-400`}>
+                    No transactions found for your referral code.
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row, i) => (
+                  <tr key={i} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td className={`px-4 ${compact ? 'py-2 text-xs' : 'py-3 text-sm'} text-slate-900 dark:text-slate-100`}>
+                      {new Date(row.created_at).toLocaleDateString()}
+                    </td>
+                    <td className={`px-4 ${compact ? 'py-2 text-xs' : 'py-3 text-sm'} text-slate-900 dark:text-slate-100`}>
+                      {row.user_id}
+                    </td>
+                    <td className={`px-4 ${compact ? 'py-2 text-xs' : 'py-3 text-sm'} text-slate-900 dark:text-slate-100 font-medium`}>
+                      ₱{fromCents(row.amount_cents).toLocaleString()}
+                    </td>
+                    <td className={`px-4 ${compact ? 'py-2 text-xs' : 'py-3 text-sm'} text-blue-600 dark:text-blue-400 font-semibold`}>
+                      ₱{fromCents(Math.round(row.amount_cents * (summary.rate))).toLocaleString()}
+                    </td>
                   </tr>
-                );
-              })}
+                ))
+              )}
             </tbody>
           </table>
         </div>
+      </div>
 
-        {error && (
-          <div className="text-sm text-bonfire-600 dark:text-bonfire-400">{error}</div>
-        )}
+      {error && (
+        <div className="text-sm text-red-600 dark:text-red-400 mt-4">{error}</div>
+      )}
 
         {showWithdraw && (
           <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in">
@@ -383,7 +391,6 @@ const AgentCommissionTracker = ({ compact = false }) => {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 };

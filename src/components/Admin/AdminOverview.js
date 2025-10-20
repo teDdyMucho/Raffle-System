@@ -95,85 +95,62 @@ const AdminOverview = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 via-red-600 to-red-700 p-8 text-white shadow-large">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative z-10">
-          <h1 className="text-4xl font-bold mb-3 animate-slide-in">Admin Dashboard</h1>
-          <p className="text-red-100 text-lg animate-slide-in" style={{animationDelay: '0.1s'}}>
-            Welcome back! Here's what's happening with your raffles today.
-          </p>
-        </div>
-        <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full animate-float"></div>
-        <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card group hover:scale-105 animate-slide-in" style={{animationDelay: '0.1s'}}>
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="dashboard-header animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-              <p className="text-3xl font-bold gradient-text">{stats.totalUsers.toLocaleString()}</p>
+              <h1 className="text-3xl sm:text-4xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="text-slate-300 text-base sm:text-lg">
+                Track, manage, and approve user transactions in real time
+              </p>
             </div>
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-2xl shadow-medium group-hover:shadow-large transition-all duration-300 animate-pulse-subtle">
-              <Users className="w-7 h-7 text-white" />
+            <div className="mt-4 sm:mt-0">
+              <div className="text-right">
+                <div className="text-2xl font-bold">₱{stats.totalRevenue.toLocaleString()}</div>
+                <div className="text-slate-300 text-sm">Total Revenue</div>
+              </div>
             </div>
-          </div>
-          <div className="mt-4 flex items-center">
-            <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 dark:text-green-400 font-medium">+{stats.monthlyGrowth}% this month</span>
           </div>
         </div>
 
-        <div className="card group hover:scale-105 animate-slide-in" style={{animationDelay: '0.2s'}}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Tickets Sold</p>
-              <p className="text-3xl font-bold gradient-text">{stats.totalTicketsSold.toLocaleString()}</p>
-            </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 p-4 rounded-2xl shadow-medium group-hover:shadow-large transition-all duration-300 animate-pulse-subtle">
-              <Ticket className="w-7 h-7 text-white" />
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="stat-card animate-slide-in" style={{animationDelay: '0.1s'}}>
+            <div className="stat-label">Total Users</div>
+            <div className="stat-value">{stats.totalUsers.toLocaleString()}</div>
+            <div className="flex items-center text-green-600 text-sm font-medium">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              +{stats.monthlyGrowth}% this month
             </div>
           </div>
-          <div className="mt-4 flex items-center">
-            <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 dark:text-green-400 font-medium">+8.2% from last week</span>
-          </div>
-        </div>
 
-        <div className="card group hover:scale-105 animate-slide-in" style={{animationDelay: '0.3s'}}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Raffles</p>
-              <p className="text-3xl font-bold gradient-text">{stats.activeRaffles}</p>
-            </div>
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-4 rounded-2xl shadow-medium group-hover:shadow-large transition-all duration-300 animate-pulse-subtle">
-              <Trophy className="w-7 h-7 text-white" />
+          <div className="stat-card animate-slide-in" style={{animationDelay: '0.2s'}}>
+            <div className="stat-label">Tickets Sold</div>
+            <div className="stat-value">{stats.totalTicketsSold.toLocaleString()}</div>
+            <div className="flex items-center text-green-600 text-sm font-medium">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              +8.2% from last week
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">{stats.completedRaffles} completed</span>
-          </div>
-        </div>
 
-        <div className="card group hover:scale-105 animate-slide-in" style={{animationDelay: '0.4s'}}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
-              <p className="text-3xl font-bold gradient-text">₱{stats.totalRevenue.toLocaleString()}</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-4 rounded-2xl shadow-medium group-hover:shadow-large transition-all duration-300 animate-pulse-subtle">
-              <DollarSign className="w-7 h-7 text-white" />
+          <div className="stat-card animate-slide-in" style={{animationDelay: '0.3s'}}>
+            <div className="stat-label">Active Raffles</div>
+            <div className="stat-value">{stats.activeRaffles}</div>
+            <div className="text-slate-600 dark:text-slate-400 text-sm">
+              {stats.completedRaffles} completed
             </div>
           </div>
-          <div className="mt-4 flex items-center">
-            <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 dark:text-green-400 font-medium">+15.3% this month</span>
+
+          <div className="stat-card animate-slide-in" style={{animationDelay: '0.4s'}}>
+            <div className="stat-label">Pending Requests</div>
+            <div className="stat-value">0</div>
+            <div className="text-slate-600 dark:text-slate-400 text-sm">
+              Awaiting approval
+            </div>
           </div>
         </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Raffles */}
@@ -262,51 +239,45 @@ const AdminOverview = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="card animate-slide-in" style={{animationDelay: '0.6s'}}>
-        <h2 className="text-2xl font-bold gradient-text mb-8">Quick Actions</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <a
-            href="/admin/raffles"
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-medium hover:shadow-large transition-all duration-300 hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <Calendar className="w-10 h-10 mb-4 animate-float" />
-            <h3 className="font-bold text-lg mb-2">Create New Raffle</h3>
-            <p className="text-blue-100 text-sm">Set up a new raffle campaign</p>
-          </a>
+        {/* Transaction Management Section */}
+        <div className="card animate-slide-in" style={{animationDelay: '0.5s'}}>
+          <h2 className="section-title">Transaction Management</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">Monitor and approve user cash-in requests</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a
+              href="/admin/raffles"
+              className="modern-button bg-blue-600 hover:bg-blue-700 text-center block"
+            >
+              <Calendar className="w-5 h-5 mx-auto mb-2" />
+              Create New Raffle
+            </a>
 
-          <a
-            href="/admin/users"
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-white shadow-medium hover:shadow-large transition-all duration-300 hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <Users className="w-10 h-10 mb-4 animate-float" style={{animationDelay: '0.5s'}} />
-            <h3 className="font-bold text-lg mb-2">Manage Users</h3>
-            <p className="text-green-100 text-sm">View and manage user accounts</p>
-          </a>
+            <a
+              href="/admin/users"
+              className="modern-button bg-green-600 hover:bg-green-700 text-center block"
+            >
+              <Users className="w-5 h-5 mx-auto mb-2" />
+              Manage Users
+            </a>
 
-          <a
-            href="/admin/reports"
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white shadow-medium hover:shadow-large transition-all duration-300 hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <TrendingUp className="w-10 h-10 mb-4 animate-float" style={{animationDelay: '1s'}} />
-            <h3 className="font-bold text-lg mb-2">View Reports</h3>
-            <p className="text-purple-100 text-sm">Generate detailed analytics</p>
-          </a>
+            <a
+              href="/admin/reports"
+              className="modern-button bg-purple-600 hover:bg-purple-700 text-center block"
+            >
+              <TrendingUp className="w-5 h-5 mx-auto mb-2" />
+              View Reports
+            </a>
 
-          <button
-            onClick={handleRecompute}
-            disabled={recomputeLoading}
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 to-red-600 p-6 text-white shadow-medium hover:shadow-large transition-all duration-300 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <RefreshCw className={`w-10 h-10 mb-4 ${recomputeLoading ? 'animate-spin' : 'animate-float'}`} style={{animationDelay: '1.5s'}} />
-            <h3 className="font-bold text-lg mb-2">Recompute Balances</h3>
-            <p className="text-red-100 text-sm">Update all agents' balance_cents</p>
-          </button>
+            <button
+              onClick={handleRecompute}
+              disabled={recomputeLoading}
+              className="modern-button bg-red-600 hover:bg-red-700 text-center"
+            >
+              <RefreshCw className={`w-5 h-5 mx-auto mb-2 ${recomputeLoading ? 'animate-spin' : ''}`} />
+              {recomputeLoading ? 'Processing...' : 'Recompute Balances'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
