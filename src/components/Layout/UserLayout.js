@@ -1,7 +1,9 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Ticket, Home, Trophy, User, LogOut, Sun, Moon } from 'lucide-react';
+import { Home, Trophy, User, LogOut, Sun, Moon, Ticket } from 'lucide-react';
+import ImageWithFallback from '../common/ImageWithFallback';
+import appLogo from '../../images/allen (1).png';
 
 const UserLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -23,10 +25,8 @@ const UserLayout = ({ children }) => {
             {/* Logo */}
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
-                <div className="bg-primary-600 p-2 rounded-lg">
-                  <Ticket className="w-6 h-6 text-white" />
-                </div>
-                <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
+                <ImageWithFallback src={appLogo} alt="Raffle Haven" className="h-10 w-10 mr-2 rounded" />
+                <span className="ml-1 text-xl font-bold text-gray-900 dark:text-white">
                   MamaMo Raffle
                 </span>
               </div>

@@ -48,8 +48,8 @@ const ToastContainer = () => {
 
   return (
     <>
-      {/* Bottom-right stack */}
-      <div className="fixed bottom-4 right-4 z-[100] space-y-3 max-w-sm">
+      {/* Bottom-right stack (mobile-safe full width with side padding) */}
+      <div className="fixed bottom-4 right-4 sm:left-auto sm:right-4 left-4 z-[100] space-y-3 max-w-full sm:max-w-sm">
         {toasts.filter(t => (t.position || 'bottom-right') === 'bottom-right').map((t) => {
           const theme = colors[t.type] || colors.info;
           return (

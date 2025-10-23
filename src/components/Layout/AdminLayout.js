@@ -1,7 +1,9 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Shield, BarChart3, Settings, Users, FileText, LogOut, Sun, Moon } from 'lucide-react';
+import { BarChart3, Settings, Users, FileText, LogOut, Sun, Moon } from 'lucide-react';
+import ImageWithFallback from '../common/ImageWithFallback';
+import appLogo from '../../images/allen (1).png';
 
 const AdminLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -23,10 +25,8 @@ const AdminLayout = ({ children }) => {
             {/* Logo */}
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
-                <div className="bg-red-600 p-2 rounded-lg">
-                  <Shield className="w-6 h-6 text-white" />
-                </div>
-                <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
+                <ImageWithFallback src={appLogo} alt="Raffle Haven" className="h-10 w-10 mr-2 rounded" />
+                <span className="ml-1 text-xl font-bold text-gray-900 dark:text-white">
                   Admin Panel
                 </span>
               </div>

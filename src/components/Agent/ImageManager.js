@@ -128,17 +128,17 @@ const ImageManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Media Library</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">Upload images to the Supabase Storage bucket "{BUCKET}"</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
           <input
             type="text"
             value={pathPrefix}
             onChange={(e) => setPathPrefix(e.target.value.endsWith('/') ? e.target.value : `${e.target.value}/`)}
-            className="input-field w-48"
+            className="input-field w-full sm:w-48"
             placeholder="uploads/"
             aria-label="Path prefix"
           />
@@ -151,12 +151,12 @@ const ImageManager = () => {
             <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
           </label>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
           <input
             type="text"
             value={bulkPrefix}
             onChange={(e) => setBulkPrefix(e.target.value.endsWith('/') ? e.target.value : `${e.target.value}/`)}
-            className="input-field w-40"
+            className="input-field w-full sm:w-40"
             placeholder="library/"
             aria-label="Bulk import prefix"
           />
