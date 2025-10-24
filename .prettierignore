@@ -1,0 +1,14 @@
+node_modules
+build
+dist
+coverage
+.cache
+.eslintcache
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+public/*.svg
+public/*.ico
+public/*.png
+public/*.jpg
+public/*.jpeg
