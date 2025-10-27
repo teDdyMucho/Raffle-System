@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
         name: data.name,
         phone: data.phone || '',
         location: data.location || '',
-        referal_code: data.referal_code || ''
+        referal_code: data.referal_code || '',
       };
       setUser(next);
       localStorage.setItem('raffle_user', JSON.stringify(next));
@@ -114,7 +114,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Provide signup to align with SignUp.js usage
-  const signUp = async ({ email, password, role = 'user', name = '', phone = '', location = '' }) => {
+  const signUp = async ({
+    email,
+    password,
+    role = 'user',
+    name = '',
+    phone = '',
+    location = '',
+  }) => {
     try {
       const cleanEmail = (email || '').trim();
       // Enforce that only regular users can sign up via the public form
@@ -123,12 +130,14 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Email and password are required');
       }
 
-      const finalName = name && name.trim() ? name.trim() : (cleanEmail.split('@')[0] || 'User');
+      const finalName = name && name.trim() ? name.trim() : cleanEmail.split('@')[0] || 'User';
 
       // Insert new user
       const { data, error: insErr } = await supabase
         .from('app_users')
-        .insert([{ email: cleanEmail, password, role: cleanRole, name: finalName, phone, location }])
+        .insert([
+          { email: cleanEmail, password, role: cleanRole, name: finalName, phone, location },
+        ])
         .select('id, email, role, name, phone, location, referal_code')
         .single();
 
@@ -152,7 +161,9 @@ export const AuthProvider = ({ children }) => {
       return { success: true, role: userData.role };
     } catch (error) {
       // Handle unique email violation gracefully
-      const msg = /duplicate key value/i.test(error.message) ? 'Email is already registered' : (error.message || 'Failed to sign up');
+      const msg = /duplicate key value/i.test(error.message)
+        ? 'Email is already registered'
+        : error.message || 'Failed to sign up';
       return { success: false, error: msg };
     }
   };
@@ -164,7 +175,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Update minimal profile fields in Supabase and local session
-  const updateProfile = async (updates) => {
+  const updateProfile = async updates => {
     try {
       if (!user?.id) throw new Error('No authenticated user');
       // Build candidate payload from known fields
@@ -184,17 +195,14 @@ export const AuthProvider = ({ children }) => {
       let currentPayload = { ...payload };
 
       while (attempt < maxRetries && Object.keys(currentPayload).length > 0) {
-        const { error } = await supabase
-          .from('app_users')
-          .update(currentPayload)
-          .eq('id', user.id);
+        const { error } = await supabase.from('app_users').update(currentPayload).eq('id', user.id);
         if (!error) {
           // success
-          const newUser = { 
-            ...user, 
+          const newUser = {
+            ...user,
             ...currentPayload,
             // Preserve referral code
-            referal_code: user.referal_code || ''
+            referal_code: user.referal_code || '',
           };
           setUser(newUser);
           localStorage.setItem('raffle_user', JSON.stringify(newUser));
@@ -206,8 +214,10 @@ export const AuthProvider = ({ children }) => {
         lastError = error;
         // Try to parse missing column from error message
         const msg = (error.message || '').toLowerCase();
-        const m = msg.match(/column\s+\"?(\w+)\"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+(\w+)\s+column/i);
-        const missingCol = (m && (m[1] || m[2])) ? (m[1] || m[2]) : null;
+        const m = msg.match(
+          /column\s+\"?(\w+)\"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+(\w+)\s+column/i
+        );
+        const missingCol = m && (m[1] || m[2]) ? m[1] || m[2] : null;
         if (missingCol && missingCol in currentPayload) {
           // Drop the offending key and retry
           // eslint-disable-next-line no-unused-vars
@@ -236,12 +246,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     signUp,
     updateProfile,
-    refreshUser
+    refreshUser,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

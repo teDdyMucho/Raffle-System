@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { BarChart3, Calendar, Download, TrendingUp, DollarSign, FileText, Ticket, Users } from 'lucide-react';
+import {
+  BarChart3,
+  Calendar,
+  Download,
+  TrendingUp,
+  DollarSign,
+  FileText,
+  Ticket,
+  Users,
+} from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 
 const Reports = () => {
@@ -17,26 +26,26 @@ const Reports = () => {
       completedRaffles: 12,
       conversionRate: 68.5,
       avgTicketPrice: 7.2,
-      avgUserSpent: 13.85
+      avgUserSpent: 13.85,
     },
     revenueByMonth: [
       { month: 'Oct 2023', revenue: 8450, tickets: 1205 },
       { month: 'Nov 2023', revenue: 12300, tickets: 1756 },
       { month: 'Dec 2023', revenue: 15600, tickets: 2234 },
-      { month: 'Jan 2024', revenue: 17280, tickets: 2456 }
+      { month: 'Jan 2024', revenue: 17280, tickets: 2456 },
     ],
     topRaffles: [
       { name: 'iPhone 15 Pro Giveaway', revenue: 3715, tickets: 743, participants: 743 },
       { name: 'MacBook Air M3', revenue: 3648, tickets: 456, participants: 456 },
       { name: 'Gaming Setup Bundle', revenue: 2340, tickets: 234, participants: 234 },
       { name: 'iPad Pro 12.9"', revenue: 5600, tickets: 800, participants: 800 },
-      { name: 'AirPods Pro 2', revenue: 1680, tickets: 240, participants: 240 }
+      { name: 'AirPods Pro 2', revenue: 1680, tickets: 240, participants: 240 },
     ],
     userStats: [
       { segment: 'High Value (>$50)', count: 156, percentage: 12.5, revenue: 8640 },
       { segment: 'Medium Value ($20-$50)', count: 423, percentage: 33.9, revenue: 6340 },
-      { segment: 'Low Value (<$20)', count: 668, percentage: 53.6, revenue: 2300 }
-    ]
+      { segment: 'Low Value (<$20)', count: 668, percentage: 53.6, revenue: 2300 },
+    ],
   };
 
   const handleGenerate = () => {
@@ -46,10 +55,13 @@ const Reports = () => {
     // In a real app, trigger API download or query here
   };
 
-  const exportReport = (format) => {
+  const exportReport = format => {
     // Mock export functionality
     console.log(`Exporting ${reportType} report as ${format}`);
-    show(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report exported as ${format.toUpperCase()}!`, { type: 'success' });
+    show(
+      `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report exported as ${format.toUpperCase()}!`,
+      { type: 'success' }
+    );
   };
 
   const dateRanges = [
@@ -58,14 +70,14 @@ const Reports = () => {
     { value: 'last3months', label: 'Last 3 Months' },
     { value: 'last6months', label: 'Last 6 Months' },
     { value: 'lastyear', label: 'Last Year' },
-    { value: 'custom', label: 'Custom Range' }
+    { value: 'custom', label: 'Custom Range' },
   ];
 
   const reportTypes = [
     { value: 'overview', label: 'Overview Report' },
     { value: 'revenue', label: 'Revenue Report' },
     { value: 'users', label: 'User Analytics' },
-    { value: 'raffles', label: 'Raffle Performance' }
+    { value: 'raffles', label: 'Raffle Performance' },
   ];
 
   return (
@@ -73,21 +85,19 @@ const Reports = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Reports & Analytics</h1>
-          <p className="text-gray-600 dark:text-gray-400">Generate detailed reports and export data</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Reports & Analytics
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Generate detailed reports and export data
+          </p>
         </div>
         <div className="flex space-x-2">
-          <button
-            onClick={() => exportReport('csv')}
-            className="btn-secondary flex items-center"
-          >
+          <button onClick={() => exportReport('csv')} className="btn-secondary flex items-center">
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </button>
-          <button
-            onClick={() => exportReport('excel')}
-            className="btn-primary flex items-center"
-          >
+          <button onClick={() => exportReport('excel')} className="btn-primary flex items-center">
             <Download className="w-4 h-4 mr-2" />
             Export Excel
           </button>
@@ -103,11 +113,13 @@ const Reports = () => {
             </label>
             <select
               value={reportType}
-              onChange={(e) => setReportType(e.target.value)}
+              onChange={e => setReportType(e.target.value)}
               className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
             >
               {reportTypes.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
               ))}
             </select>
           </div>
@@ -118,17 +130,22 @@ const Reports = () => {
             </label>
             <select
               value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
+              onChange={e => setDateRange(e.target.value)}
               className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
             >
               {dateRanges.map(range => (
-                <option key={range.value} value={range.value}>{range.label}</option>
+                <option key={range.value} value={range.value}>
+                  {range.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="flex items-end">
-            <button onClick={handleGenerate} className="w-full btn-primary flex items-center justify-center">
+            <button
+              onClick={handleGenerate}
+              className="w-full btn-primary flex items-center justify-center"
+            >
               <BarChart3 className="w-4 h-4 mr-2" />
               Generate Report
             </button>
@@ -200,17 +217,25 @@ const Reports = () => {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Revenue Trend</h2>
-            <button onClick={() => setReportType('revenue')} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm">
+            <button
+              onClick={() => setReportType('revenue')}
+              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm"
+            >
               View Details
             </button>
           </div>
 
           <div className="space-y-4">
             {reportData.revenueByMonth.map((month, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div
+                key={index}
+                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+              >
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white">{month.month}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{month.tickets} tickets sold</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {month.tickets} tickets sold
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-green-600 dark:text-green-400">
@@ -228,15 +253,23 @@ const Reports = () => {
         {/* Top Performing Raffles */}
         <div className="card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Top Performing Raffles</h2>
-            <button onClick={() => setReportType('raffles')} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Top Performing Raffles
+            </h2>
+            <button
+              onClick={() => setReportType('raffles')}
+              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm"
+            >
               View All
             </button>
           </div>
 
           <div className="space-y-4">
             {reportData.topRaffles.map((raffle, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <div
+                key={index}
+                className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+              >
                 <div className="flex items-center">
                   <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3">
                     {index + 1}
@@ -265,7 +298,7 @@ const Reports = () => {
       {/* User Segmentation */}
       <div className="card">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">User Segmentation</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {reportData.userStats.map((segment, index) => (
             <div key={index} className="text-center p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -274,8 +307,12 @@ const Reports = () => {
               </h3>
               <div className="space-y-2">
                 <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{segment.count}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">users ({segment.percentage}%)</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {segment.count}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    users ({segment.percentage}%)
+                  </p>
                 </div>
                 <div>
                   <p className="text-lg font-semibold text-green-600 dark:text-green-400">
@@ -292,8 +329,10 @@ const Reports = () => {
       {/* Additional Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Key Performance Indicators</h2>
-          
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+            Key Performance Indicators
+          </h2>
+
           <div className="space-y-4">
             <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <span className="text-gray-700 dark:text-gray-300">Average Ticket Price</span>
@@ -324,7 +363,7 @@ const Reports = () => {
 
         <div className="card">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Export Options</h2>
-          
+
           <div className="space-y-4">
             <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
               <div className="flex items-center mb-3">
@@ -332,19 +371,14 @@ const Reports = () => {
                 <h3 className="font-medium text-gray-900 dark:text-white">Detailed Reports</h3>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Export comprehensive reports with all raffle data, user information, and financial metrics.
+                Export comprehensive reports with all raffle data, user information, and financial
+                metrics.
               </p>
               <div className="flex space-x-2">
-                <button
-                  onClick={() => exportReport('pdf')}
-                  className="btn-secondary text-sm"
-                >
+                <button onClick={() => exportReport('pdf')} className="btn-secondary text-sm">
                   PDF Report
                 </button>
-                <button
-                  onClick={() => exportReport('csv')}
-                  className="btn-secondary text-sm"
-                >
+                <button onClick={() => exportReport('csv')} className="btn-secondary text-sm">
                   CSV Data
                 </button>
               </div>
@@ -358,7 +392,10 @@ const Reports = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Set up automated reports to be sent to your email weekly or monthly.
               </p>
-              <button onClick={() => show('Scheduling setup coming soon.', { type: 'info' })} className="btn-primary text-sm">
+              <button
+                onClick={() => show('Scheduling setup coming soon.', { type: 'info' })}
+                className="btn-primary text-sm"
+              >
                 Setup Schedule
               </button>
             </div>

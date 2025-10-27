@@ -5,23 +5,27 @@ A modern, responsive web application for managing raffle systems with dual login
 ## 🚀 Features
 
 ### 🔑 Authentication
+
 - Single login interface with role selection (User/Admin)
 - Secure authentication with role-based redirection
 - Mock authentication system for development
 
 ### 👤 User Features
+
 - **Landing Page**: Welcoming hero section with raffle branding and CTAs
 - **Join Raffles**: Browse active raffles with countdown timers, join with custom or auto-generated ticket numbers
 - **Past Results**: View previous raffle winners and results with search/filter functionality
 - **Profile Page**: Manage account information and view ticket history
 
 ### 🛠 Admin Features
+
 - **Dashboard**: Quick stats overview with total users, tickets sold, active raffles, and revenue
 - **Raffle Management**: Create, edit, pause, resume, and manage raffles with winner selection
 - **User Management**: View, ban/unban users, and monitor user activity
 - **Reports**: Generate detailed analytics and export data (CSV/Excel)
 
 ### 🎨 Design Features
+
 - Clean, modern UI with Tailwind CSS
 - Animated transitions and countdown timers
 - Responsive design for desktop and mobile
@@ -39,16 +43,19 @@ A modern, responsive web application for managing raffle systems with dual login
 ## 📦 Installation
 
 1. **Clone or navigate to the project directory:**
+
    ```bash
    cd C:\Users\PC-1\Desktop\mamamoraffle
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Start the development server:**
+
    ```bash
    npm start
    ```
@@ -61,11 +68,13 @@ A modern, responsive web application for managing raffle systems with dual login
 ## 🔐 Demo Credentials
 
 ### User Login
+
 - **Email**: `user@mamamo.com`
 - **Password**: `user123`
 - **Role**: User
 
 ### Admin Login
+
 - **Email**: `admin@mamamo.com`
 - **Password**: `admin123`
 - **Role**: Admin
@@ -109,14 +118,17 @@ mamamoraffle/
 ## 🎯 Key Components
 
 ### Authentication System
+
 - **AuthContext**: Manages user authentication state and login/logout functionality
 - **Login Component**: Handles role-based login with demo credentials
 
 ### Theme System
+
 - **ThemeContext**: Manages dark/light theme toggle with localStorage persistence
 - **Theme Toggle**: Available in all layouts for seamless theme switching
 
 ### User Interface
+
 - **Responsive Layouts**: Separate layouts for User and Admin with navigation
 - **Interactive Components**: Countdown timers, progress bars, modals, and forms
 - **Data Visualization**: Stats cards, charts, and tables for admin analytics
@@ -124,12 +136,14 @@ mamamoraffle/
 ## 🔧 Customization
 
 ### Adding New Raffles
+
 1. Navigate to Admin Panel → Raffle Management
 2. Click "Create Raffle" button
 3. Fill in raffle details (title, description, dates, pricing)
 4. Save to create new raffle
 
 ### Theme Customization
+
 Edit `tailwind.config.js` to customize colors, animations, and design tokens:
 
 ```javascript
@@ -148,6 +162,7 @@ theme: {
 ```
 
 ### Adding New Features
+
 1. Create new components in appropriate directories
 2. Add routes in respective Dashboard components
 3. Update navigation in Layout components
@@ -156,6 +171,7 @@ theme: {
 ## 📱 Responsive Design
 
 The application is fully responsive and optimized for:
+
 - **Desktop**: Full-featured interface with sidebar navigation
 - **Tablet**: Adapted layouts with collapsible navigation
 - **Mobile**: Touch-friendly interface with bottom navigation

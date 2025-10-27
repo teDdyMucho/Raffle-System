@@ -21,7 +21,10 @@ const CopyReferral = () => {
           await navigator.clipboard.writeText(code);
           setStatus('copied');
           // Small delay so user sees status, then redirect
-          setTimeout(() => { if (!redirected) navigate(next, { replace: true }); redirected = true; }, 500);
+          setTimeout(() => {
+            if (!redirected) navigate(next, { replace: true });
+            redirected = true;
+          }, 500);
           return;
         }
       } catch (_) {
@@ -30,25 +33,37 @@ const CopyReferral = () => {
       setStatus('fallback');
     };
     attempt();
-    return () => { redirected = true; };
+    return () => {
+      redirected = true;
+    };
   }, [code, navigate, next]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-magnolia-50 dark:bg-blackswarm-900 p-6">
       <div className="max-w-md w-full bg-white dark:bg-blackswarm-800 border border-magnolia-200 dark:border-blackswarm-700 rounded-lg p-6 text-center">
-        <h1 className="text-xl font-semibold text-blackswarm-900 dark:text-magnolia-50 mb-2">Preparing referral…</h1>
+        <h1 className="text-xl font-semibold text-blackswarm-900 dark:text-magnolia-50 mb-2">
+          Preparing referral…
+        </h1>
         {status === 'copying' && (
-          <p className="text-sm text-blackswarm-600 dark:text-magnolia-400">Copying referral code to clipboard…</p>
+          <p className="text-sm text-blackswarm-600 dark:text-magnolia-400">
+            Copying referral code to clipboard…
+          </p>
         )}
         {status === 'copied' && (
-          <p className="text-sm text-green-600 dark:text-green-400">Referral code copied! Redirecting…</p>
+          <p className="text-sm text-green-600 dark:text-green-400">
+            Referral code copied! Redirecting…
+          </p>
         )}
         {status === 'missing' && (
-          <p className="text-sm text-bonfire-600 dark:text-bonfire-400">No referral code provided.</p>
+          <p className="text-sm text-bonfire-600 dark:text-bonfire-400">
+            No referral code provided.
+          </p>
         )}
         {status === 'fallback' && (
           <div>
-            <p className="text-sm text-blackswarm-600 dark:text-magnolia-400 mb-3">Tap the button below to copy, then continue.</p>
+            <p className="text-sm text-blackswarm-600 dark:text-magnolia-400 mb-3">
+              Tap the button below to copy, then continue.
+            </p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={async () => {
@@ -80,7 +95,10 @@ const CopyReferral = () => {
               </button>
             </div>
             <div className="mt-3 text-xs text-blackswarm-500 dark:text-magnolia-400">
-              Code: <span id="ref-code" className="font-mono">{code || 'N/A'}</span>
+              Code:{' '}
+              <span id="ref-code" className="font-mono">
+                {code || 'N/A'}
+              </span>
             </div>
           </div>
         )}

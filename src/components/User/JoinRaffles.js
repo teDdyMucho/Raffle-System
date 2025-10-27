@@ -34,7 +34,9 @@ const JoinRaffles = () => {
       setRaffles(data || []);
     } catch (err) {
       console.error('Fetch active raffles error:', err);
-      show('Failed to load raffles from Supabase. Please ensure your env and policies are set.', { type: 'error' });
+      show('Failed to load raffles from Supabase. Please ensure your env and policies are set.', {
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -60,13 +62,13 @@ const JoinRaffles = () => {
 
       try {
         await Promise.all(
-          toComplete.map(async (r) => {
+          toComplete.map(async r => {
             const { error } = await supabase
               .from('raffles')
               .update({ status: 'inactive' })
               .eq('id', r.id);
             if (!error) {
-              setCompletedIds((prev) => prev.concat(r.id));
+              setCompletedIds(prev => prev.concat(r.id));
             }
           })
         );
@@ -80,7 +82,7 @@ const JoinRaffles = () => {
     autoComplete();
   }, [currentTime, raffles]);
 
-  const getTimeRemaining = (endDate) => {
+  const getTimeRemaining = endDate => {
     // Normalize date-only values to end-of-day in local time to avoid timezone misparsing
     let end;
     if (typeof endDate === 'string') {
@@ -104,7 +106,7 @@ const JoinRaffles = () => {
     return randomNumber.toString().padStart(6, '0');
   };
 
-  const handleJoinRaffle = (raffle) => {
+  const handleJoinRaffle = raffle => {
     setSelectedRaffle(raffle);
     if (isAutoGenerate) {
       setTicketNumber(generateRandomTicket());
@@ -117,11 +119,8 @@ const JoinRaffles = () => {
       setJoining(true);
       // 1) Debit wallet first based on raffle ticket price (robust parsing)
       const rawPrice =
-        selectedRaffle.ticket_price ??
-        selectedRaffle.price ??
-        selectedRaffle.entry_price ??
-        0;
-      const parseToCents = (v) => {
+        selectedRaffle.ticket_price ?? selectedRaffle.price ?? selectedRaffle.entry_price ?? 0;
+      const parseToCents = v => {
         if (typeof v === 'number') return Math.round(v * 100);
         if (typeof v === 'string') {
           const cleaned = v.replace(/[₱,\s]/g, '');
@@ -161,12 +160,17 @@ const JoinRaffles = () => {
         throw error;
       }
       // Use global defaults (centered, 3s)
-      show(`Successfully joined ${selectedRaffle.title} with ticket #${ticketNumber}!`, { type: 'success' });
+      show(`Successfully joined ${selectedRaffle.title} with ticket #${ticketNumber}!`, {
+        type: 'success',
+      });
       setSelectedRaffle(null);
       setTicketNumber('');
     } catch (err) {
       console.error('Join raffle error:', err);
-      show(`Failed to join raffle: ${err.message || err}. If you haven't created a tickets table yet, I can provide the SQL.`, { type: 'error' });
+      show(
+        `Failed to join raffle: ${err.message || err}. If you haven't created a tickets table yet, I can provide the SQL.`,
+        { type: 'error' }
+      );
     } finally {
       setJoining(false);
     }
@@ -201,8 +205,12 @@ const JoinRaffles = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join Active Raffles</h1>
-        <p className="text-gray-600 dark:text-gray-400">Choose your lucky numbers and win amazing prizes!</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Join Active Raffles
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Choose your lucky numbers and win amazing prizes!
+        </p>
       </div>
 
       {/* Active Raffles Grid */}
@@ -214,7 +222,9 @@ const JoinRaffles = () => {
           </div>
         )}
         {/* Compute only raffles that have not ended yet in local time */}
-        {(() => { return null; })()}
+        {(() => {
+          return null;
+        })()}
         {!loading && raffles.filter(r => getTimeRemaining(r.end_date).total > 0).length === 0 && (
           <div className="col-span-full text-center py-16 text-gray-500 dark:text-gray-400">
             <Ticket className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -222,70 +232,74 @@ const JoinRaffles = () => {
             <p className="text-sm">Check back soon for new opportunities to win!</p>
           </div>
         )}
-        {!loading && raffles.filter(r => getTimeRemaining(r.end_date).total > 0).map((raffle) => (
-          <div
-            key={raffle.id}
-            className="card hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-l-primary-500"
-          >
-            {raffle.image_url && (
-              <div className="mb-6 -mt-6 -mx-6">
-                <ImageWithFallback
-                  src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
-                  fallbackSrc={TRANSPARENT_PIXEL}
-                  alt={raffle.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-              </div>
-            )}
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {raffle.title}
-                </h3>
-                <span className="inline-block bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-2 py-1 rounded-full text-xs font-medium">
-                  {raffle.category}
-                </span>
-              </div>
-              <div className="text-right" />
-            </div>
+        {!loading &&
+          raffles
+            .filter(r => getTimeRemaining(r.end_date).total > 0)
+            .map(raffle => (
+              <div
+                key={raffle.id}
+                className="card hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-l-primary-500"
+              >
+                {raffle.image_url && (
+                  <div className="mb-6 -mt-6 -mx-6">
+                    <ImageWithFallback
+                      src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
+                      fallbackSrc={TRANSPARENT_PIXEL}
+                      alt={raffle.title}
+                      className="w-full h-48 object-cover rounded-t-lg"
+                    />
+                  </div>
+                )}
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {raffle.title}
+                    </h3>
+                    <span className="inline-block bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-2 py-1 rounded-full text-xs font-medium">
+                      {raffle.category}
+                    </span>
+                  </div>
+                  <div className="text-right" />
+                </div>
 
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {raffle.description}
-            </p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                  {raffle.description}
+                </p>
 
+                {/* Raffle Info */}
+                <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                  <div className="flex items-center">
+                    <Ticket className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Price: ₱{raffle.ticket_price}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
+                    <span className="text-gray-600 dark:text-gray-400">Entries coming soon</span>
+                  </div>
+                </div>
 
-            {/* Raffle Info */}
-            <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-              <div className="flex items-center">
-                <Ticket className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
-                <span className="text-gray-600 dark:text-gray-400">Price: ₱{raffle.ticket_price}</span>
+                {/* Countdown */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <Clock className="w-4 h-4 text-red-500 mr-2" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Ends in:</span>
+                  </div>
+                  <CountdownTimer endDate={raffle.end_date} />
+                </div>
+
+                {/* Join Button */}
+                <button
+                  onClick={() => handleJoinRaffle(raffle)}
+                  className="w-full btn-primary flex items-center justify-center"
+                  disabled={false}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Join Raffle
+                </button>
               </div>
-              <div className="flex items-center">
-                <Users className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
-                <span className="text-gray-600 dark:text-gray-400">Entries coming soon</span>
-              </div>
-            </div>
-
-            {/* Countdown */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <Clock className="w-4 h-4 text-red-500 mr-2" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Ends in:</span>
-              </div>
-              <CountdownTimer endDate={raffle.end_date} />
-            </div>
-
-            {/* Join Button */}
-            <button
-              onClick={() => handleJoinRaffle(raffle)}
-              className="w-full btn-primary flex items-center justify-center"
-              disabled={false}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Join Raffle
-            </button>
-          </div>
-        ))}
+            ))}
       </div>
 
       {/* Ticket Selection Modal */}
@@ -322,7 +336,9 @@ const JoinRaffles = () => {
                     }}
                     className="mr-3"
                   />
-                  <span className="text-gray-700 dark:text-gray-300">Auto-generate lucky number</span>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Auto-generate lucky number
+                  </span>
                 </label>
 
                 <label className="flex items-center">
@@ -348,7 +364,7 @@ const JoinRaffles = () => {
                   <input
                     type="text"
                     value={ticketNumber}
-                    onChange={(e) => setTicketNumber(e.target.value)}
+                    onChange={e => setTicketNumber(e.target.value)}
                     placeholder="Enter 6-digit number"
                     maxLength="6"
                     className="flex-1 input-field"

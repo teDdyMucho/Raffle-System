@@ -14,13 +14,13 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const { show } = useToast();
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -68,10 +68,14 @@ const Login = () => {
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-32 w-32 md:h-40 md:w-40 rounded-full overflow-hidden mb-6 shadow-xl ring-2 ring-bonfire-500/30">
-            <ImageWithFallback src={appLogo} alt="Raffle Haven" className="h-full w-full object-cover" />
+            <ImageWithFallback
+              src={appLogo}
+              alt="Raffle Haven"
+              className="h-full w-full object-cover"
+            />
           </div>
           <h2 className="text-4xl md:text-5xl font-extrabold text-blackswarm-900 dark:text-magnolia-50">
-            Raffle Haven  
+            Raffle Haven
           </h2>
           <p className="mt-2 text-blackswarm-600 dark:text-magnolia-400">
             Sign in to access your account
@@ -118,7 +122,10 @@ const Login = () => {
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -129,7 +136,7 @@ const Login = () => {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 border border-magnolia-300 dark:border-blackswarm-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-bonfire-500 dark:bg-blackswarm-700 dark:text-magnolia-50"
                   placeholder="Enter your email"
                 />
@@ -138,7 +145,10 @@ const Login = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+              >
                 Password
               </label>
               <div className="relative">
@@ -149,7 +159,7 @@ const Login = () => {
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-2 border border-magnolia-300 dark:border-blackswarm-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-bonfire-500 dark:bg-blackswarm-700 dark:text-magnolia-50"
                   placeholder="Enter your password"
                 />
@@ -182,7 +192,9 @@ const Login = () => {
         </form>
         <p className="text-center text-sm text-blackswarm-600 dark:text-magnolia-400">
           Don’t have an account?{' '}
-          <Link to="/signup" className="text-bonfire-600 dark:text-bonfire-400 hover:underline">Create one</Link>
+          <Link to="/signup" className="text-bonfire-600 dark:text-bonfire-400 hover:underline">
+            Create one
+          </Link>
         </p>
       </div>
     </div>

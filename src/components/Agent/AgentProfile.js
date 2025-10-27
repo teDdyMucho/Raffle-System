@@ -2,7 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import watermarkSrc from '../../images/allen (1).png';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { User, Mail, Phone, MapPin, Save, Link, Copy, Share2, Check, Download, X } from 'lucide-react';
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Save,
+  Link,
+  Copy,
+  Share2,
+  Check,
+  Download,
+  X,
+} from 'lucide-react';
 
 const AgentProfile = () => {
   const { user, updateProfile, refreshUser } = useAuth();
@@ -17,7 +29,7 @@ const AgentProfile = () => {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
-    location: user?.location || ''
+    location: user?.location || '',
   });
 
   const handleDownloadPng = () => {
@@ -26,7 +38,7 @@ const AgentProfile = () => {
       if (!canvas) return;
       const link = document.createElement('a');
       const fileNameSafe = (user?.name || 'Agent').replace(/[^a-z0-9_-]+/gi, '-');
-      const code = (user?.referal_code || 'code');
+      const code = user?.referal_code || 'code';
       link.download = `referral-${fileNameSafe}-${code}.png`;
       // Downscale for smaller downloadable image (keeps on-screen size unchanged)
       const scale = 0.5; // 50% of current render size
@@ -50,8 +62,11 @@ const AgentProfile = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const onMove = (e) => {
-      if (!qrRegion) { canvas.style.cursor = 'default'; return; }
+    const onMove = e => {
+      if (!qrRegion) {
+        canvas.style.cursor = 'default';
+        return;
+      }
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -80,7 +95,7 @@ const AgentProfile = () => {
     let t;
     const onResize = () => {
       clearTimeout(t);
-      t = setTimeout(() => setCanvasTick((v) => v + 1), 100);
+      t = setTimeout(() => setCanvasTick(v => v + 1), 100);
     };
     window.addEventListener('resize', onResize);
     return () => {
@@ -97,15 +112,14 @@ const AgentProfile = () => {
     const code = (user?.referal_code || '').toString();
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
     // Target aspect ratio based on design 800x450
-    const baseW = 800, baseH = 450, ratio = baseH / baseW;
+    const baseW = 800,
+      baseH = 450,
+      ratio = baseH / baseW;
     // Fit canvas to the popup content area so no scrollbars appear
     const bodyEl = shareBodyRef.current;
-    const containerW = Math.min(
-      1000,
-      Math.floor((bodyEl?.clientWidth || window.innerWidth * 0.85))
-    );
+    const containerW = Math.min(1000, Math.floor(bodyEl?.clientWidth || window.innerWidth * 0.85));
     // Modal max height is 90vh; subtract header (~56px) and vertical paddings (~32px)
-    const modalMaxH = Math.floor(window.innerHeight * 0.90);
+    const modalMaxH = Math.floor(window.innerHeight * 0.9);
     const headerH = 56;
     const bodyPadding = 32;
     const containerH = Math.min(580, modalMaxH - headerH - bodyPadding);
@@ -136,14 +150,20 @@ const AgentProfile = () => {
     const cardWidth = width - cardPadding * 2;
     const cardHeight = height - cardPadding * 2;
     // rounded rect
-    const rx = cardPadding, ry = cardPadding;
+    const rx = cardPadding,
+      ry = cardPadding;
     ctx.fillStyle = 'rgba(255,255,255,0.95)';
     ctx.beginPath();
     ctx.moveTo(rx + cardRadius, ry);
     ctx.lineTo(rx + cardWidth - cardRadius, ry);
     ctx.quadraticCurveTo(rx + cardWidth, ry, rx + cardWidth, ry + cardRadius);
     ctx.lineTo(rx + cardWidth, ry + cardHeight - cardRadius);
-    ctx.quadraticCurveTo(rx + cardWidth, ry + cardHeight, rx + cardWidth - cardRadius, ry + cardHeight);
+    ctx.quadraticCurveTo(
+      rx + cardWidth,
+      ry + cardHeight,
+      rx + cardWidth - cardRadius,
+      ry + cardHeight
+    );
     ctx.lineTo(rx + cardRadius, ry + cardHeight);
     ctx.quadraticCurveTo(rx, ry + cardHeight, rx, ry + cardHeight - cardRadius);
     ctx.lineTo(rx, ry + cardRadius);
@@ -175,7 +195,7 @@ const AgentProfile = () => {
         ctx.globalAlpha = 0.5; // clearly visible on light background
         ctx.drawImage(wmImg, cx, cy, w, h);
         ctx.restore();
-      } catch(_) {}
+      } catch (_) {}
     };
     if (wmImg.complete) {
       drawWatermark();
@@ -207,7 +227,12 @@ const AgentProfile = () => {
     ctx.lineTo(codeBoxX + codeBoxW - r2, codeBoxY);
     ctx.quadraticCurveTo(codeBoxX + codeBoxW, codeBoxY, codeBoxX + codeBoxW, codeBoxY + r2);
     ctx.lineTo(codeBoxX + codeBoxW, codeBoxY + codeBoxH - r2);
-    ctx.quadraticCurveTo(codeBoxX + codeBoxW, codeBoxY + codeBoxH, codeBoxX + codeBoxW - r2, codeBoxY + codeBoxH);
+    ctx.quadraticCurveTo(
+      codeBoxX + codeBoxW,
+      codeBoxY + codeBoxH,
+      codeBoxX + codeBoxW - r2,
+      codeBoxY + codeBoxH
+    );
     ctx.lineTo(codeBoxX + r2, codeBoxY + codeBoxH);
     ctx.quadraticCurveTo(codeBoxX, codeBoxY + codeBoxH, codeBoxX, codeBoxY + codeBoxH - r2);
     ctx.lineTo(codeBoxX, codeBoxY + r2);
@@ -244,13 +269,13 @@ const AgentProfile = () => {
           width: Math.floor(Math.min(180, cardWidth * 0.25)),
           color: {
             dark: '#111827ff',
-            light: '#ffffffff'
-          }
+            light: '#ffffffff',
+          },
         });
         const qrImg = new Image();
         qrImg.onload = () => {
           // Place QR on the right side of the code box, same row (bigger)
-          let qrSize = Math.floor(Math.min(codeBoxH * 1.28, cardWidth * 0.40));
+          let qrSize = Math.floor(Math.min(codeBoxH * 1.28, cardWidth * 0.4));
           const gap = 16;
           let qrX = codeBoxX + codeBoxW + gap;
           // Ensure QR fits within card bounds
@@ -272,7 +297,7 @@ const AgentProfile = () => {
   }, [shareOpen, user?.name, user?.referal_code, canvasTick]);
 
   // Click handler: copy referral code when clicking inside QR region
-  const onCanvasClick = (e) => {
+  const onCanvasClick = e => {
     try {
       if (!qrRegion || !user?.referal_code) return;
       const canvas = canvasRef.current;
@@ -287,18 +312,20 @@ const AgentProfile = () => {
           show('Referral code copied!', { type: 'success' });
         });
       }
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
   };
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -306,7 +333,7 @@ const AgentProfile = () => {
       const result = await updateProfile({
         name: formData.name,
         phone: formData.phone,
-        location: formData.location
+        location: formData.location,
       });
 
       if (result.success) {
@@ -337,9 +364,7 @@ const AgentProfile = () => {
           {/* Profile Avatar */}
           <div className="flex items-center justify-center mb-6">
             <div className="w-24 h-24 bg-gradient-to-r from-bonfire-400 to-embers-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-3xl">
-                {user?.name?.charAt(0) || 'A'}
-              </span>
+              <span className="text-white font-bold text-3xl">{user?.name?.charAt(0) || 'A'}</span>
             </div>
           </div>
 
@@ -366,7 +391,10 @@ const AgentProfile = () => {
 
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+            >
               Full Name
             </label>
             <div className="relative">
@@ -387,7 +415,10 @@ const AgentProfile = () => {
 
           {/* Phone */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+            >
               Phone Number
             </label>
             <div className="relative">
@@ -407,7 +438,10 @@ const AgentProfile = () => {
 
           {/* Location */}
           <div>
-            <label htmlFor="location" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
+            <label
+              htmlFor="location"
+              className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+            >
               Location
             </label>
             <div className="relative">
@@ -432,17 +466,17 @@ const AgentProfile = () => {
               <Link className="w-5 h-5 mr-2 text-bonfire-500" />
               Your Referral Code
             </h3>
-            
+
             <div className="bg-magnolia-100 dark:bg-blackswarm-700 rounded-lg p-4">
               <p className="text-sm text-blackswarm-600 dark:text-magnolia-400 mb-2">
                 Share this code with users to earn commission on their cash-ins
               </p>
-              
+
               <div className="flex items-center mt-2">
                 <div className="flex-grow bg-magnolia-50 dark:bg-blackswarm-800 border border-magnolia-300 dark:border-blackswarm-600 rounded-md py-3 px-4 text-lg font-medium text-blackswarm-900 dark:text-magnolia-50">
                   {user?.referal_code || 'No referral code assigned'}
                 </div>
-                <button 
+                <button
                   type="button"
                   onClick={() => {
                     if (user?.referal_code) {
@@ -459,14 +493,16 @@ const AgentProfile = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { if (user?.referal_code) setShareOpen(true); }}
+                  onClick={() => {
+                    if (user?.referal_code) setShareOpen(true);
+                  }}
                   disabled={!user?.referal_code}
                   className={`ml-2 p-3 rounded-md ${user?.referal_code ? 'bg-embers-500 hover:bg-embers-600 text-white' : 'bg-magnolia-200 dark:bg-blackswarm-600 text-blackswarm-400 dark:text-magnolia-500 cursor-not-allowed'}`}
                 >
                   <Share2 className="w-5 h-5" />
                 </button>
               </div>
-              
+
               {!user?.referal_code && (
                 <p className="mt-2 text-sm text-bonfire-600 dark:text-bonfire-400">
                   Contact an administrator to get your referral code assigned.
@@ -497,14 +533,22 @@ const AgentProfile = () => {
           <div className="absolute inset-0 bg-black/50" onClick={() => setShareOpen(false)} />
           <div className="relative z-10 w-full max-w-4xl max-h-[90vh] mx-4 bg-magnolia-50 dark:bg-blackswarm-800 rounded-xl shadow-2xl border border-magnolia-200 dark:border-blackswarm-700 overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-magnolia-200 dark:border-blackswarm-700">
-              <h3 className="text-lg font-semibold text-blackswarm-900 dark:text-magnolia-50">Share Referral</h3>
-              <button onClick={() => setShareOpen(false)} className="p-2 rounded-md hover:bg-magnolia-100 dark:hover:bg-blackswarm-700">
+              <h3 className="text-lg font-semibold text-blackswarm-900 dark:text-magnolia-50">
+                Share Referral
+              </h3>
+              <button
+                onClick={() => setShareOpen(false)}
+                className="p-2 rounded-md hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
+              >
                 <X className="w-5 h-5 text-blackswarm-600 dark:text-magnolia-400" />
               </button>
             </div>
             <div ref={shareBodyRef} className="p-4">
               <div className="w-full">
-                <canvas ref={canvasRef} className="block mx-auto rounded-lg border border-magnolia-200 dark:border-blackswarm-700" />
+                <canvas
+                  ref={canvasRef}
+                  className="block mx-auto rounded-lg border border-magnolia-200 dark:border-blackswarm-700"
+                />
               </div>
               <div className="mt-4 flex items-center justify-end gap-3">
                 <button

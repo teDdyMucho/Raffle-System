@@ -3,9 +3,25 @@ import ImageWithFallback from '../common/ImageWithFallback';
 import PopupAds from '../PopupAds';
 import cashinAd from '../../images/cashinads.png';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, Ticket, Trophy, Calendar, Edit3, Save, X, Plus, Wallet as WalletIcon } from 'lucide-react';
+import {
+  User,
+  Ticket,
+  Trophy,
+  Calendar,
+  Edit3,
+  Save,
+  X,
+  Plus,
+  Wallet as WalletIcon,
+} from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
-import { requestCashIn, listCashIns, getUserBalanceCents, fromCents, getFixedReferralCode } from '../../lib/wallet';
+import {
+  requestCashIn,
+  listCashIns,
+  getUserBalanceCents,
+  fromCents,
+  getFixedReferralCode,
+} from '../../lib/wallet';
 import { useToast } from '../../contexts/ToastContext';
 
 const UserProfile = () => {
@@ -16,7 +32,7 @@ const UserProfile = () => {
     name: user?.name || '',
     email: user?.email || '',
     phone: '+1 (555) 123-4567',
-    location: 'San Francisco, CA'
+    location: 'San Francisco, CA',
   });
 
   // Live ticket history state (replaces mock list)
@@ -56,7 +72,9 @@ const UserProfile = () => {
       if (!success) throw new Error(error || 'Failed to update profile');
       setIsEditing(false);
       if (Array.isArray(dropped) && dropped.length > 0) {
-        show(`Profile updated. Skipped missing columns: ${dropped.join(', ')}`, { type: 'warning' });
+        show(`Profile updated. Skipped missing columns: ${dropped.join(', ')}`, {
+          type: 'warning',
+        });
       } else {
         show('Profile updated', { type: 'success' });
       }
@@ -67,7 +85,7 @@ const UserProfile = () => {
   };
 
   // Relative time helper: e.g., "in 2 days" or "2 days ago"
-  const fromNow = (dateLike) => {
+  const fromNow = dateLike => {
     try {
       const d = new Date(dateLike);
       const diffMs = d.getTime() - Date.now();
@@ -99,14 +117,16 @@ const UserProfile = () => {
       name: user?.name || '',
       email: user?.email || '',
       phone: '+1 (555) 123-4567',
-      location: 'San Francisco, CA'
+      location: 'San Francisco, CA',
     });
     setIsEditing(false);
   };
 
   const getStatusColor = (status, result) => {
-    if (status === 'active') return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-    if (result === 'won') return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+    if (status === 'active')
+      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+    if (result === 'won')
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
     return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
   };
 
@@ -120,7 +140,7 @@ const UserProfile = () => {
 
   // Try to resolve a price from many possible field names and formats
   const resolvePriceDisplay = (raffleObj = {}, ticketObj = {}) => {
-    const toNumber = (v) => {
+    const toNumber = v => {
       if (typeof v === 'number') return v;
       if (typeof v === 'string') {
         const cleaned = v.replace(/[,\s]/g, '');
@@ -166,7 +186,7 @@ const UserProfile = () => {
       if (!Number.isNaN(n) && Number.isFinite(n)) return `₱${n.toFixed(2)}`;
     }
     // Last resort: scan any key with price/amount/cost
-    const scan = (obj) => {
+    const scan = obj => {
       for (const k of Object.keys(obj || {})) {
         if (/price|amount|cost/i.test(k)) {
           const n = toNumber(obj[k]);
@@ -180,7 +200,7 @@ const UserProfile = () => {
 
   // Resolve a price expressed in cents if possible
   const resolvePriceCents = (raffleObj = {}, ticketObj = {}) => {
-    const toNumber = (v) => {
+    const toNumber = v => {
       if (typeof v === 'number') return v;
       if (typeof v === 'string') {
         const cleaned = v.replace(/[,\s]/g, '');
@@ -246,7 +266,7 @@ const UserProfile = () => {
       }
       const [balRes, listRes] = await Promise.all([
         getUserBalanceCents(uid),
-        listCashIns(uid, { limit: 5 })
+        listCashIns(uid, { limit: 5 }),
       ]);
       if (balRes.success) setBalanceCents(balRes.balance_cents || 0);
       if (listRes.success) setCashIns(listRes.data || []);
@@ -269,25 +289,16 @@ const UserProfile = () => {
         let tErr = null;
         try {
           if (uid) {
-            const r1 = await supabase
-              .from('tickets')
-              .select('*')
-              .eq('user_id', uid);
+            const r1 = await supabase.from('tickets').select('*').eq('user_id', uid);
             if (r1.error) throw r1.error;
             ticketsData = r1.data || [];
             if ((!ticketsData || ticketsData.length === 0) && email) {
-              const r2 = await supabase
-                .from('tickets')
-                .select('*')
-                .ilike('user_email', email);
+              const r2 = await supabase.from('tickets').select('*').ilike('user_email', email);
               ticketsData = r2.data || [];
               tErr = r2.error || null;
             }
           } else {
-            const r = await supabase
-              .from('tickets')
-              .select('*')
-              .ilike('user_email', email);
+            const r = await supabase.from('tickets').select('*').ilike('user_email', email);
             ticketsData = r.data || [];
             tErr = r.error || null;
           }
@@ -306,7 +317,9 @@ const UserProfile = () => {
           return;
         }
 
-        const raffleIds = Array.from(new Set((ticketsData || []).map(row => row.raffle_id).filter(Boolean)));
+        const raffleIds = Array.from(
+          new Set((ticketsData || []).map(row => row.raffle_id).filter(Boolean))
+        );
         if (process.env.NODE_ENV !== 'production') {
           // eslint-disable-next-line no-console
           console.log('[Stats] raffleIds:', raffleIds);
@@ -321,7 +334,9 @@ const UserProfile = () => {
         {
           const rA = await supabase
             .from('raffles')
-            .select('id, ticket_price, ticket_price_cents, price, price_cents, entry_price, amount, cost_cents, title, name, raffle_name, raffleTitle, raffle, event_name, image_url')
+            .select(
+              'id, ticket_price, ticket_price_cents, price, price_cents, entry_price, amount, cost_cents, title, name, raffle_name, raffleTitle, raffle, event_name, image_url'
+            )
             .in('id', raffleIds);
           if (rA.error) throw rA.error;
           rafflesData = rA.data || [];
@@ -337,7 +352,9 @@ const UserProfile = () => {
           if (numericIds.length > 0) {
             const rB = await supabase
               .from('raffles')
-              .select('id, ticket_price, ticket_price_cents, price, price_cents, entry_price, amount, cost_cents, title, name, raffle_name, raffleTitle, raffle, event_name, image_url')
+              .select(
+                'id, ticket_price, ticket_price_cents, price, price_cents, entry_price, amount, cost_cents, title, name, raffle_name, raffleTitle, raffle, event_name, image_url'
+              )
               .in('id', numericIds);
             if (!rB.error) {
               rafflesData = rB.data || [];
@@ -347,22 +364,22 @@ const UserProfile = () => {
 
         // If still empty, try alternate table name `raffles_raffle` and rely on its `name` column
         if (!rafflesData || rafflesData.length === 0) {
-          const rC = await supabase
-            .from('raffles_raffle')
-            .select('id, name')
-            .in('id', raffleIds);
+          const rC = await supabase.from('raffles_raffle').select('id, name').in('id', raffleIds);
           if (!rC.error && rC.data && rC.data.length > 0) {
             rafflesData = rC.data.map(r => ({
               id: r.id,
               ticket_price: 0,
               title: null,
               name: r.name,
-              image_url: null
+              image_url: null,
             }));
           } else {
             // Try numeric IDs for raffles_raffle as well
             const numericIds = raffleIds
-              .map(v => { const n = Number(v); return Number.isFinite(n) ? n : null; })
+              .map(v => {
+                const n = Number(v);
+                return Number.isFinite(n) ? n : null;
+              })
               .filter(v => v !== null);
             if (numericIds.length > 0) {
               const rD = await supabase
@@ -370,7 +387,13 @@ const UserProfile = () => {
                 .select('id, name')
                 .in('id', numericIds);
               if (!rD.error && rD.data) {
-                rafflesData = rD.data.map(r => ({ id: r.id, ticket_price: 0, title: null, name: r.name, image_url: null }));
+                rafflesData = rD.data.map(r => ({
+                  id: r.id,
+                  ticket_price: 0,
+                  title: null,
+                  name: r.name,
+                  image_url: null,
+                }));
               }
             }
           }
@@ -400,14 +423,18 @@ const UserProfile = () => {
               totalSpentCents += counts[rid] * cents;
             } else {
               const num = Number(r.ticket_price || r.price || r.entry_price || 0);
-              if (Number.isFinite(num) && num > 0) totalSpentCents += counts[rid] * Math.round(num * 100);
+              if (Number.isFinite(num) && num > 0)
+                totalSpentCents += counts[rid] * Math.round(num * 100);
             }
           }
         }
 
         if (process.env.NODE_ENV !== 'production') {
           // eslint-disable-next-line no-console
-          console.log('[Stats] totals cents:', { perTicket: totalSpentCentsPerTicket, final: totalSpentCents });
+          console.log('[Stats] totals cents:', {
+            perTicket: totalSpentCentsPerTicket,
+            final: totalSpentCents,
+          });
         }
 
         setSpentCents(totalSpentCents);
@@ -421,14 +448,12 @@ const UserProfile = () => {
     fetchStats();
   }, [user?.email, user?.id]);
 
-  
-
   // Fetch wallet info on mount / user change
   useEffect(() => {
     refreshWallet();
   }, [user?.id]);
 
-  const submitCashIn = async (e) => {
+  const submitCashIn = async e => {
     e?.preventDefault?.();
     try {
       const uid = user?.id;
@@ -446,12 +471,9 @@ const UserProfile = () => {
         if (!referralToUse) throw new Error('Please enter a referral code');
       }
 
-      const { success, error } = await requestCashIn(
-        uid,
-        amountNum,
-        cashInForm.method,
-        { referral_code: referralToUse }
-      );
+      const { success, error } = await requestCashIn(uid, amountNum, cashInForm.method, {
+        referral_code: referralToUse,
+      });
       if (!success) throw new Error(error || 'Failed to submit');
       show('Cash-in request submitted for review', { type: 'success' });
       setCashInForm({ amount: '', method: 'gcash', referral_code: referralToUse });
@@ -509,10 +531,7 @@ const UserProfile = () => {
               tickets = r.data || [];
             } catch (e1) {
               // Retry without order
-              const r2 = await supabase
-                .from('tickets')
-                .select('*')
-                .eq('user_id', uid);
+              const r2 = await supabase.from('tickets').select('*').eq('user_id', uid);
               tickets = r2.data || [];
               tErr = r2.error || null;
             }
@@ -524,10 +543,7 @@ const UserProfile = () => {
                 .ilike('user_email', email)
                 .order('created_at', { ascending: false });
               if (r3.error) {
-                const r4 = await supabase
-                  .from('tickets')
-                  .select('*')
-                  .ilike('user_email', email);
+                const r4 = await supabase.from('tickets').select('*').ilike('user_email', email);
                 tickets = r4.data || [];
                 tErr = r4.error || null;
               } else {
@@ -542,10 +558,7 @@ const UserProfile = () => {
               .ilike('user_email', email)
               .order('created_at', { ascending: false });
             if (r.error) {
-              const r2 = await supabase
-                .from('tickets')
-                .select('*')
-                .ilike('user_email', email);
+              const r2 = await supabase.from('tickets').select('*').ilike('user_email', email);
               tickets = r2.data || [];
               tErr = r2.error || null;
             } else {
@@ -578,7 +591,9 @@ const UserProfile = () => {
           try {
             const { data: raffles, error: rErr } = await supabase
               .from('raffles')
-              .select('id, title, description, end_date, ends_at, end, close_at, draw_date, draw_at, deadline, status, ticket_price, ticket_price_cents, price, price_cents, entry_price, ticket_cost, amount, winner, image_url')
+              .select(
+                'id, title, description, end_date, ends_at, end, close_at, draw_date, draw_at, deadline, status, ticket_price, ticket_price_cents, price, price_cents, entry_price, ticket_cost, amount, winner, image_url'
+              )
               .in('id', ids);
             if (!rErr) {
               raffleMap = new Map((raffles || []).map(r => [String(r.id), r]));
@@ -588,14 +603,22 @@ const UserProfile = () => {
             }
           } catch (raffleErr) {
             // eslint-disable-next-line no-console
-            console.warn('[Profile] raffles fetch failed, continuing with defaults:', raffleErr?.message || raffleErr);
+            console.warn(
+              '[Profile] raffles fetch failed, continuing with defaults:',
+              raffleErr?.message || raffleErr
+            );
           }
         }
 
         // Optional auto-repair: backfill missing ticket price/user fields based on raffle and current user
         if (process.env.NODE_ENV !== 'production') {
           // eslint-disable-next-line no-console
-          console.log('[Profile] tickets fetched:', (tickets||[]).length, 'sample:', (tickets||[])[0]);
+          console.log(
+            '[Profile] tickets fetched:',
+            (tickets || []).length,
+            'sample:',
+            (tickets || [])[0]
+          );
         }
 
         if (AUTO_REPAIR_TICKETS && tickets && tickets.length > 0) {
@@ -603,10 +626,16 @@ const UserProfile = () => {
             const updates = [];
             for (const t of tickets) {
               const r = raffleMap.get(String(t.raffle_id)) || {};
-              const needsPrice = (t.price_cents == null && t.ticket_price_cents == null && t.price == null && t.ticket_price == null);
+              const needsPrice =
+                t.price_cents == null &&
+                t.ticket_price_cents == null &&
+                t.price == null &&
+                t.ticket_price == null;
               const priceCents = needsPrice ? resolvePriceCents(r, t) : null;
               // Only repair tickets that clearly belong to the current user
-              const owned = (uid && t.user_id === uid) || (t.user_email && String(t.user_email).toLowerCase() === lowerEmail);
+              const owned =
+                (uid && t.user_id === uid) ||
+                (t.user_email && String(t.user_email).toLowerCase() === lowerEmail);
               const patch = {};
               if (owned && needsPrice && priceCents != null) {
                 patch.price_cents = priceCents;
@@ -615,7 +644,8 @@ const UserProfile = () => {
               if (owned) {
                 if (!t.user_id && uid) patch.user_id = uid;
                 if (!t.user_email && email) patch.user_email = email;
-                if (!t.user_name && (editedUser?.name || user?.name)) patch.user_name = editedUser?.name || user?.name;
+                if (!t.user_name && (editedUser?.name || user?.name))
+                  patch.user_name = editedUser?.name || user?.name;
               }
               if (Object.keys(patch).length > 0) {
                 updates.push({ id: t.id, patch });
@@ -626,9 +656,9 @@ const UserProfile = () => {
               const chunkSize = 10;
               for (let i = 0; i < updates.length; i += chunkSize) {
                 const chunk = updates.slice(i, i + chunkSize);
-                await Promise.allSettled(chunk.map(u =>
-                  supabase.from('tickets').update(u.patch).eq('id', u.id)
-                ));
+                await Promise.allSettled(
+                  chunk.map(u => supabase.from('tickets').update(u.patch).eq('id', u.id))
+                );
               }
               // Refresh tickets with newly filled data (non-blocking best-effort)
             }
@@ -647,7 +677,8 @@ const UserProfile = () => {
           let status = 'active';
           if (typeof r.status === 'string') {
             const s = r.status.toLowerCase();
-            if (['completed','ended','closed','finished','done'].includes(s)) status = 'completed';
+            if (['completed', 'ended', 'closed', 'finished', 'done'].includes(s))
+              status = 'completed';
             else status = 'active';
           }
           // If no explicit status, infer from end_date
@@ -657,7 +688,12 @@ const UserProfile = () => {
             } catch (_) {}
           }
           const isCompleted = status === 'completed';
-          const result = (isCompleted && r.winner && (r.winner === t.user_name || r.winner === t.user_email)) ? 'won' : (isCompleted ? 'lost' : '');
+          const result =
+            isCompleted && r.winner && (r.winner === t.user_name || r.winner === t.user_email)
+              ? 'won'
+              : isCompleted
+                ? 'lost'
+                : '';
           // Compute display prize with immediate fallback
           let prizeDisplay = resolvePriceDisplay(r, t);
           if (prizeDisplay === '₱—') {
@@ -665,26 +701,41 @@ const UserProfile = () => {
             if (pc != null) prizeDisplay = `₱${fromCents(pc)}`;
             if (prizeDisplay === '₱—') {
               // eslint-disable-next-line no-console
-              console.warn('[Profile] Prize still missing for ticket', t.id, { raffle: r, ticket: t });
+              console.warn('[Profile] Prize still missing for ticket', t.id, {
+                raffle: r,
+                ticket: t,
+              });
             }
           }
           if (!endDate && process.env.NODE_ENV !== 'production') {
             // eslint-disable-next-line no-console
-            console.warn('[Profile] End date missing for ticket', t.id, { raffleKeys: Object.keys(r||{}), ticketKeys: Object.keys(t||{}) });
+            console.warn('[Profile] End date missing for ticket', t.id, {
+              raffleKeys: Object.keys(r || {}),
+              ticketKeys: Object.keys(t || {}),
+            });
           }
           // Choose best available raffle title/name
-          const raffleTitle = (
+          const raffleTitle =
             // 0) Column snapshot stored on ticket
             t.raffle_name ||
             // 1) Prefer names from raffles / raffles_raffle
-            r.title || r.name || r.raffle_name || r.raffleTitle || r.raffle || r.event_name ||
+            r.title ||
+            r.name ||
+            r.raffle_name ||
+            r.raffleTitle ||
+            r.raffle ||
+            r.event_name ||
             // 2) Other ticket-side fields
-            t.raffle_title || t.raffleTitle || t.raffle || t.event_name || t.title || t.eventTitle ||
+            t.raffle_title ||
+            t.raffleTitle ||
+            t.raffle ||
+            t.event_name ||
+            t.title ||
+            t.eventTitle ||
             // 3) Ticket meta fallbacks
             (t.meta && (t.meta.raffle_title || t.meta.title || t.meta.event_name)) ||
             // 4) Last resort
-            (`Raffle #${t.raffle_id || t.id}`)
-          );
+            `Raffle #${t.raffle_id || t.id}`;
 
           return {
             id: t.id,
@@ -700,7 +751,7 @@ const UserProfile = () => {
         });
 
         // Fallback: if tickets fetched but rows empty, build minimal rows from tickets
-        if ((tickets && tickets.length > 0) && rows.length === 0) {
+        if (tickets && tickets.length > 0 && rows.length === 0) {
           // eslint-disable-next-line no-console
           console.warn('[Profile] Fallback tickets mapping engaged');
           rows = tickets.map(t => ({
@@ -721,7 +772,7 @@ const UserProfile = () => {
         setStats(prev => ({ ...prev, totalTickets: rows.length }));
         // Robust fallback: compute total spent from row.prize display if available
         try {
-          const parseCents = (s) => {
+          const parseCents = s => {
             if (!s || s === '₱—') return 0;
             const m = String(s).match(/-?\d+(?:\.\d+)?/);
             if (!m) return 0;
@@ -732,7 +783,9 @@ const UserProfile = () => {
             setSpentCents(sumCents);
             setStats(prev => ({ ...prev, totalSpent: fromCents(sumCents) }));
           }
-        } catch (_) { /* ignore */ }
+        } catch (_) {
+          /* ignore */
+        }
         setPage(1);
       } catch (err) {
         // eslint-disable-next-line no-console
@@ -747,11 +800,17 @@ const UserProfile = () => {
 
   return (
     <div className="space-y-6">
-      <PopupAds open={showProfileAds} onClose={() => setShowProfileAds(false)} images={[cashinAd]} />
+      <PopupAds
+        open={showProfileAds}
+        onClose={() => setShowProfileAds(false)}
+        images={[cashinAd]}
+      />
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Profile</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage your account and view your raffle history</p>
+        <p className="text-gray-600 dark:text-gray-400">
+          Manage your account and view your raffle history
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -759,7 +818,9 @@ const UserProfile = () => {
         <div className="lg:col-span-1">
           <div className="card">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Profile Information</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Profile Information
+              </h2>
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
@@ -793,11 +854,13 @@ const UserProfile = () => {
                 <input
                   type="text"
                   value={editedUser.name}
-                  onChange={(e) => setEditedUser({...editedUser, name: e.target.value})}
+                  onChange={e => setEditedUser({ ...editedUser, name: e.target.value })}
                   className="text-xl font-bold text-center input-field"
                 />
               ) : (
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{editedUser.name}</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {editedUser.name}
+                </h3>
               )}
             </div>
 
@@ -816,7 +879,9 @@ const UserProfile = () => {
                   title="Email cannot be changed"
                 />
                 {isEditing && (
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Email cannot be changed.</p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Email cannot be changed.
+                  </p>
                 )}
               </div>
 
@@ -828,7 +893,7 @@ const UserProfile = () => {
                   <input
                     type="tel"
                     value={editedUser.phone}
-                    onChange={(e) => setEditedUser({...editedUser, phone: e.target.value})}
+                    onChange={e => setEditedUser({ ...editedUser, phone: e.target.value })}
                     className="input-field"
                   />
                 ) : (
@@ -844,7 +909,7 @@ const UserProfile = () => {
                   <input
                     type="text"
                     value={editedUser.location}
-                    onChange={(e) => setEditedUser({...editedUser, location: e.target.value})}
+                    onChange={e => setEditedUser({ ...editedUser, location: e.target.value })}
                     className="input-field"
                   />
                 ) : (
@@ -870,18 +935,22 @@ const UserProfile = () => {
               <div className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 rounded-full flex items-center justify-center">
                 <Ticket className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">{stats.totalTickets}</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">
+                {stats.totalTickets}
+              </h3>
               <p className="text-xs text-gray-600 dark:text-gray-400">Total Tickets</p>
             </div>
-            
+
             <div className="card text-center h-28 flex flex-col items-center justify-center gap-2">
               <div className="bg-green-100 dark:bg-green-900/30 w-10 h-10 rounded-full flex items-center justify-center">
                 <span className="text-green-600 dark:text-green-400 font-bold text-base">₱</span>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">₱{stats.totalSpent}</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">
+                ₱{stats.totalSpent}
+              </h3>
               <p className="text-xs text-gray-600 dark:text-gray-400">Total Spent</p>
             </div>
-            
+
             <button
               onClick={refreshWallet}
               disabled={walletLoading}
@@ -892,7 +961,9 @@ const UserProfile = () => {
               <div className="bg-purple-100 dark:bg-purple-900/30 w-10 h-10 rounded-full flex items-center justify-center">
                 <WalletIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">₱{fromCents(balanceCents)}</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">
+                ₱{fromCents(balanceCents)}
+              </h3>
               <p className="text-xs text-gray-600 dark:text-gray-400">Balance</p>
             </button>
           </div>
@@ -906,7 +977,10 @@ const UserProfile = () => {
               <div className="flex items-center gap-2">
                 <select
                   value={statusFilter}
-                  onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                  onChange={e => {
+                    setStatusFilter(e.target.value);
+                    setPage(1);
+                  }}
                   className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white text-sm"
                 >
                   <option value="all">All</option>
@@ -917,20 +991,28 @@ const UserProfile = () => {
                   type="text"
                   placeholder="Search by raffle or ticket #..."
                   value={searchTerm}
-                  onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+                  onChange={e => {
+                    setSearchTerm(e.target.value);
+                    setPage(1);
+                  }}
                   className="input-field text-sm"
                 />
               </div>
             </div>
 
             {ticketsLoading ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading tickets…</div>
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                Loading tickets…
+              </div>
             ) : (
               (() => {
                 const filtered = ticketRows.filter(row => {
                   const matchesStatus = statusFilter === 'all' || row.status === statusFilter;
                   const q = searchTerm.trim().toLowerCase();
-                  const matchesSearch = !q || row.raffleTitle.toLowerCase().includes(q) || (row.ticketNumber || '').includes(q);
+                  const matchesSearch =
+                    !q ||
+                    row.raffleTitle.toLowerCase().includes(q) ||
+                    (row.ticketNumber || '').includes(q);
                   return matchesStatus && matchesSearch;
                 });
                 const total = filtered.length;
@@ -942,33 +1024,48 @@ const UserProfile = () => {
                 return (
                   <div ref={ticketsContainerRef} className="flex flex-col">
                     {total === 0 ? (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">No tickets found.</div>
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        No tickets found.
+                      </div>
                     ) : (
                       <div className="space-y-4 flex-1" style={{ minHeight: '300px' }}>
-                        {pageRows.map((ticket) => (
-                          <div key={ticket.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                        {pageRows.map(ticket => (
+                          <div
+                            key={ticket.id}
+                            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                          >
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex items-center gap-3">
                                 {ticket.imageUrl ? (
-                                  <ImageWithFallback src={ticket.imageUrl} alt="raffle" className="w-12 h-12 object-cover rounded-lg shadow-sm" />
+                                  <ImageWithFallback
+                                    src={ticket.imageUrl}
+                                    alt="raffle"
+                                    className="w-12 h-12 object-cover rounded-lg shadow-sm"
+                                  />
                                 ) : (
                                   <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 flex items-center justify-center shadow-sm">
                                     <Ticket className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                                   </div>
                                 )}
                                 <div>
-                                  <h4 className="font-bold text-gray-900 dark:text-white">{ticket.raffleTitle}</h4>
+                                  <h4 className="font-bold text-gray-900 dark:text-white">
+                                    {ticket.raffleTitle}
+                                  </h4>
                                   <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
                                     <span className="font-medium">#{ticket.ticketNumber}</span>
                                   </p>
                                 </div>
                               </div>
                               <div className="text-right">
-                                <span className={`px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm ${getStatusColor(ticket.status, ticket.result)}`}>
+                                <span
+                                  className={`px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm ${getStatusColor(ticket.status, ticket.result)}`}
+                                >
                                   {getStatusText(ticket.status, ticket.result)}
                                 </span>
                                 {ticket.prize && ticket.prize !== '₱—' && (
-                                  <p className="text-sm font-bold text-gray-900 dark:text-white mt-1">{ticket.prize}</p>
+                                  <p className="text-sm font-bold text-gray-900 dark:text-white mt-1">
+                                    {ticket.prize}
+                                  </p>
                                 )}
                               </div>
                             </div>
@@ -976,12 +1073,15 @@ const UserProfile = () => {
                             <div className="flex justify-start items-center text-xs text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800 pt-2 mt-1">
                               <div className="flex items-center">
                                 <Calendar className="w-3.5 h-3.5 mr-1 text-primary-500 dark:text-primary-400" />
-                                <span>Purchased: {new Date(ticket.purchaseDate).toLocaleDateString()}</span>
+                                <span>
+                                  Purchased: {new Date(ticket.purchaseDate).toLocaleDateString()}
+                                </span>
                               </div>
                             </div>
                             <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-gray-600 dark:text-gray-400">
                               <div>
-                                <span className="font-medium">Result:</span> {ticket.result ? ticket.result : '—'}
+                                <span className="font-medium">Result:</span>{' '}
+                                {ticket.result ? ticket.result : '—'}
                               </div>
                             </div>
                           </div>
@@ -992,11 +1092,27 @@ const UserProfile = () => {
                     {total > pageSize && (
                       <div className="flex items-center justify-between mt-4 gap-2 flex-col sm:flex-row">
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Showing <span className="font-medium">{start + 1}-{Math.min(start + pageSize, total)}</span> of <span className="font-medium">{total}</span>
+                          Showing{' '}
+                          <span className="font-medium">
+                            {start + 1}-{Math.min(start + pageSize, total)}
+                          </span>{' '}
+                          of <span className="font-medium">{total}</span>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => setPage(p => Math.max(1, p - 1))} className={`btn-secondary text-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={page === 1}>Previous</button>
-                          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} className={`btn-secondary text-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={page === totalPages}>Next</button>
+                          <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            className={`btn-secondary text-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={page === 1}
+                          >
+                            Previous
+                          </button>
+                          <button
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            className={`btn-secondary text-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={page === totalPages}
+                          >
+                            Next
+                          </button>
                         </div>
                       </div>
                     )}
@@ -1008,57 +1124,70 @@ const UserProfile = () => {
             {!ticketsLoading && ticketRows.length === 0 && (
               <div className="text-center py-8">
                 <Ticket className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tickets yet</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No tickets yet
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   You haven't joined any raffles yet. Start by joining an active raffle!
                 </p>
-                <a href="/user/join" className="btn-primary">Join a Raffle</a>
+                <a href="/user/join" className="btn-primary">
+                  Join a Raffle
+                </a>
               </div>
             )}
           </div>
         </div>
       </div>
-      
+
       {/* Cash In Modal */}
       {showCashInModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 relative">
-            <button 
+            <button
               onClick={() => setShowCashInModal(false)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <X className="w-5 h-5" />
             </button>
-            
+
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Cash In</h2>
-            
+
             <div className="mb-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">Current balance</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">₱{fromCents(balanceCents)}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                ₱{fromCents(balanceCents)}
+              </p>
             </div>
-            
-            <form onSubmit={(e) => {
-              submitCashIn(e);
-              setShowCashInModal(false);
-            }} className="space-y-4">
+
+            <form
+              onSubmit={e => {
+                submitCashIn(e);
+                setShowCashInModal(false);
+              }}
+              className="space-y-4"
+            >
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Amount
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={cashInForm.amount}
-                  onChange={(e) => setCashInForm({ ...cashInForm, amount: e.target.value })}
+                  onChange={e => setCashInForm({ ...cashInForm, amount: e.target.value })}
                   className="input-field"
                   placeholder="Enter amount"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Method</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Method
+                </label>
                 <select
                   value={cashInForm.method}
-                  onChange={(e) => setCashInForm({ ...cashInForm, method: e.target.value })}
+                  onChange={e => setCashInForm({ ...cashInForm, method: e.target.value })}
                   className="input-field"
                 >
                   <option value="gcash">GCash</option>
@@ -1067,47 +1196,66 @@ const UserProfile = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Referal Code</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Referal Code
+                </label>
                 <input
                   type="text"
                   value={cashInForm.referral_code}
-                  onChange={(e) => setCashInForm({ ...cashInForm, referral_code: e.target.value })}
+                  onChange={e => setCashInForm({ ...cashInForm, referral_code: e.target.value })}
                   className={`input-field ${referralLocked ? 'opacity-80 cursor-not-allowed' : ''}`}
                   placeholder="Agent Referral Code"
                   disabled={referralLocked}
                 />
                 {referralLocked && (
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Your referral code is locked after your first approved cash-in.</p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Your referral code is locked after your first approved cash-in.
+                  </p>
                 )}
               </div>
-              
+
               {/* Recent Requests */}
               {cashIns.length > 0 && (
                 <div className="mt-4">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Recent requests</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                    Recent requests
+                  </h3>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {cashIns.map((r) => (
-                      <div key={r.id} className="flex items-center justify-between text-sm border border-gray-200 dark:border-gray-700 rounded px-3 py-2">
+                    {cashIns.map(r => (
+                      <div
+                        key={r.id}
+                        className="flex items-center justify-between text-sm border border-gray-200 dark:border-gray-700 rounded px-3 py-2"
+                      >
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">₱{fromCents(r.amount_cents)} • {r.method}</p>
-                          <p className="text-xs text-gray-500">{new Date(r.created_at).toLocaleString()}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            ₱{fromCents(r.amount_cents)} • {r.method}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(r.created_at).toLocaleString()}
+                          </p>
                         </div>
-                        <span className={`px-2 py-1 rounded-full text-xs capitalize ${r.status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : r.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>{r.status}</span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs capitalize ${r.status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : r.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}
+                        >
+                          {r.status}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-              
+
               <div className="flex justify-end gap-3 mt-6">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowCashInModal(false)}
                   className="btn-secondary"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary">Submit Request</button>
+                <button type="submit" className="btn-primary">
+                  Submit Request
+                </button>
               </div>
             </form>
           </div>

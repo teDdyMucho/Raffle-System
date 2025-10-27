@@ -20,7 +20,7 @@ import {
   Flame,
   Timer,
   Sparkles,
-  Search as SearchIcon
+  Search as SearchIcon,
 } from 'lucide-react';
 
 const UserHeader = () => {
@@ -41,7 +41,7 @@ const UserHeader = () => {
     { to: '/user/profile', label: 'Profile', icon: UserIcon },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = path => location.pathname === path;
 
   const handleLogout = () => {
     logout();
@@ -52,7 +52,7 @@ const UserHeader = () => {
     markAllRead();
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = e => {
     e.preventDefault();
     const term = e.target.elements.search?.value?.trim();
     if (term) {
@@ -95,13 +95,19 @@ const UserHeader = () => {
         <div className="h-16 flex items-center justify-between">
           {/* Left - Logo */}
           <Link to="/user" className="flex items-center">
-            <ImageWithFallback src={appLogo} alt="Raffle Haven" className="h-12 w-12 mr-3 rounded" />
-            <span className="text-lg font-bold text-blackswarm-900 dark:text-magnolia-50">Raffle Haven</span>
+            <ImageWithFallback
+              src={appLogo}
+              alt="Raffle Haven"
+              className="h-12 w-12 mr-3 rounded"
+            />
+            <span className="text-lg font-bold text-blackswarm-900 dark:text-magnolia-50">
+              Raffle Haven
+            </span>
           </Link>
 
           {/* Center - Nav (desktop) */}
           <nav className="hidden md:flex items-center space-x-2">
-            {nav.map((item) => {
+            {nav.map(item => {
               const Icon = item.icon;
               return (
                 <Link
@@ -140,22 +146,38 @@ const UserHeader = () => {
               {notifOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-magnolia-50 dark:bg-blackswarm-800 rounded-md shadow-lg border border-magnolia-200 dark:border-blackswarm-700">
                   <div className="flex items-center justify-between px-4 py-2 border-b border-magnolia-200 dark:border-blackswarm-700">
-                    <span className="text-sm font-medium text-blackswarm-900 dark:text-magnolia-50">Notifications</span>
-                    <button onClick={handleMarkAllRead} className="text-xs text-bonfire-600 dark:text-bonfire-400 hover:underline">Mark all read</button>
+                    <span className="text-sm font-medium text-blackswarm-900 dark:text-magnolia-50">
+                      Notifications
+                    </span>
+                    <button
+                      onClick={handleMarkAllRead}
+                      className="text-xs text-bonfire-600 dark:text-bonfire-400 hover:underline"
+                    >
+                      Mark all read
+                    </button>
                   </div>
                   <div className="max-h-80 overflow-auto">
                     {notifications.length === 0 && (
-                      <div className="px-4 py-6 text-sm text-blackswarm-600 dark:text-magnolia-400">No notifications</div>
+                      <div className="px-4 py-6 text-sm text-blackswarm-600 dark:text-magnolia-400">
+                        No notifications
+                      </div>
                     )}
                     {notifications.map(n => (
                       <Link
                         key={n.id}
                         to={n.href}
-                        onClick={() => { markAsRead(n.id); setNotifOpen(false); }}
+                        onClick={() => {
+                          markAsRead(n.id);
+                          setNotifOpen(false);
+                        }}
                         className={`block px-4 py-3 text-sm hover:bg-magnolia-100 dark:hover:bg-blackswarm-700 ${n.unread ? 'bg-bonfire-50/60 dark:bg-bonfire-900/10' : ''}`}
                       >
-                        <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">{n.title}</p>
-                        <p className="text-xs text-blackswarm-600 dark:text-magnolia-400">{n.desc}</p>
+                        <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">
+                          {n.title}
+                        </p>
+                        <p className="text-xs text-blackswarm-600 dark:text-magnolia-400">
+                          {n.desc}
+                        </p>
                       </Link>
                     ))}
                   </div>
@@ -175,8 +197,13 @@ const UserHeader = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-bonfire-400 to-embers-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
                 {user?.name?.[0] || 'U'}
               </div>
-              <span className="text-sm text-blackswarm-900 dark:text-magnolia-50 mr-3">{user?.name || 'User'}</span>
-              <button onClick={handleLogout} className="text-bonfire-600 dark:text-bonfire-400 hover:underline flex items-center">
+              <span className="text-sm text-blackswarm-900 dark:text-magnolia-50 mr-3">
+                {user?.name || 'User'}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-bonfire-600 dark:text-bonfire-400 hover:underline flex items-center"
+              >
                 <LogOut className="w-4 h-4 mr-1" /> Logout
               </button>
             </div>
@@ -184,7 +211,7 @@ const UserHeader = () => {
             {/* Mobile menu toggle */}
             <button
               className="md:hidden p-2 rounded-md text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700"
-              onClick={() => setOpen((v) => !v)}
+              onClick={() => setOpen(v => !v)}
               aria-label="Toggle navigation"
             >
               {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -195,7 +222,7 @@ const UserHeader = () => {
         {/* Mobile menu */}
         {open && (
           <div className="md:hidden border-t border-magnolia-200 dark:border-blackswarm-700 py-2 space-y-1">
-            {nav.map((item) => {
+            {nav.map(item => {
               const Icon = item.icon;
               return (
                 <Link
@@ -221,9 +248,14 @@ const UserHeader = () => {
                 <div className="w-8 h-8 bg-gradient-to-r from-bonfire-400 to-embers-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
                   {user?.name?.[0] || 'U'}
                 </div>
-                <span className="text-sm text-blackswarm-900 dark:text-magnolia-50">{user?.name || 'User'}</span>
+                <span className="text-sm text-blackswarm-900 dark:text-magnolia-50">
+                  {user?.name || 'User'}
+                </span>
               </div>
-              <button onClick={handleLogout} className="text-bonfire-600 dark:text-bonfire-400 flex items-center">
+              <button
+                onClick={handleLogout}
+                className="text-bonfire-600 dark:text-bonfire-400 flex items-center"
+              >
                 <LogOut className="w-4 h-4 mr-1" /> Logout
               </button>
             </div>
@@ -247,19 +279,28 @@ const UserHeader = () => {
                 </button>
               </div>
               <div className="px-6 py-4 space-y-3 max-h-[60vh] overflow-auto">
-                {myWins.map((w) => (
-                  <div key={w.id} className="border border-magnolia-200 dark:border-blackswarm-700 rounded-md p-4">
+                {myWins.map(w => (
+                  <div
+                    key={w.id}
+                    className="border border-magnolia-200 dark:border-blackswarm-700 rounded-md p-4"
+                  >
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-blackswarm-600 dark:text-magnolia-400">Raffle</p>
-                        <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">{w.raffle_name}</p>
+                        <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">
+                          {w.raffle_name}
+                        </p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-blackswarm-600 dark:text-magnolia-400">Ticket</p>
-                        <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">#{w.ticket_number}</p>
+                        <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">
+                          #{w.ticket_number}
+                        </p>
                       </div>
                     </div>
-                    <p className="mt-2 text-sm text-blackswarm-600 dark:text-magnolia-400">Won on {new Date(w.created_at).toLocaleString()}</p>
+                    <p className="mt-2 text-sm text-blackswarm-600 dark:text-magnolia-400">
+                      Won on {new Date(w.created_at).toLocaleString()}
+                    </p>
                   </div>
                 ))}
               </div>

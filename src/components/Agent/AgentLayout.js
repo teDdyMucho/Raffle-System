@@ -9,7 +9,7 @@ import AgentCommissionTracker from './AgentCommissionTracker';
 const AgentLayout = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
-  const handleNavigation = (pageId) => {
+  const handleNavigation = pageId => {
     setCurrentPage(pageId);
   };
 
@@ -66,9 +66,7 @@ const AgentLayout = () => {
   return (
     <div className="min-h-screen bg-magnolia-100 dark:bg-blackswarm-900">
       <AgentHeader currentPage={currentPage} onNavigate={handleNavigation} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderCurrentPage()}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{renderCurrentPage()}</main>
     </div>
   );
 };

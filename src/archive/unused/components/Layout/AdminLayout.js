@@ -34,7 +34,7 @@ const AdminLayout = ({ children }) => {
 
             {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-8">
-              {navigation.map((item) => {
+              {navigation.map(item => {
                 const Icon = item.icon;
                 return (
                   <a
@@ -55,9 +55,13 @@ const AdminLayout = ({ children }) => {
                 onClick={toggleTheme}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
               >
-                {isDark ? <Sun className="w-4 h-4 text-yellow-500" /> : <Moon className="w-4 h-4 text-gray-600" />}
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-yellow-500" />
+                ) : (
+                  <Moon className="w-4 h-4 text-gray-600" />
+                )}
               </button>
-              
+
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-700 dark:text-gray-300">
                   Admin: {user?.name}
@@ -76,7 +80,7 @@ const AdminLayout = ({ children }) => {
         {/* Mobile Navigation */}
         <div className="md:hidden border-t border-gray-200 dark:border-gray-700">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            {navigation.map((item) => {
+            {navigation.map(item => {
               const Icon = item.icon;
               return (
                 <a
@@ -94,9 +98,7 @@ const AdminLayout = ({ children }) => {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">{children}</main>
     </div>
   );
 };

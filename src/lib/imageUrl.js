@@ -12,8 +12,8 @@ export function resolveImageUrl(pathOrUrl) {
 
     // Normalize object path for the 'images' bucket
     let objectPath = trimmed
-      .replace(/^\/+/, '')                  // remove leading '/'
-      .replace(/^images\//, '');            // if someone stored 'images/...' strip bucket prefix
+      .replace(/^\/+/, '') // remove leading '/'
+      .replace(/^images\//, ''); // if someone stored 'images/...' strip bucket prefix
 
     // Treat as an object path inside the "images" bucket
     const { data } = supabase.storage.from('images').getPublicUrl(objectPath);

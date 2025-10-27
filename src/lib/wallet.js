@@ -45,7 +45,6 @@ export async function creditBalanceCents(userId, amount_cents) {
   } catch (err) {
     return { success: false, error: err.message || String(err) };
   }
-
 }
 export async function recomputeAllAgentBalances() {
   try {
@@ -59,7 +58,9 @@ export async function recomputeAllAgentBalances() {
       if (!code) continue;
       const bps = Number.isFinite(Number(a?.commission_bps))
         ? Math.max(0, Math.floor(Number(a.commission_bps)))
-        : (Number.isFinite(Number(a?.commission_pct)) ? Math.max(0, Math.floor(Number(a.commission_pct) * 100)) : 1000);
+        : Number.isFinite(Number(a?.commission_pct))
+          ? Math.max(0, Math.floor(Number(a.commission_pct) * 100))
+          : 1000;
       const all = new Map();
       const { data: d1, error: e1 } = await supabase
         .from('user_wallet')
@@ -179,7 +180,9 @@ export async function getFixedReferralCode(userId) {
           try {
             const v = userRow?.referal?.code;
             return v ? String(v).trim() : '';
-          } catch (_) { return ''; }
+          } catch (_) {
+            return '';
+          }
         })();
         if (jsonCode) return { success: true, code: jsonCode };
 
@@ -210,7 +213,9 @@ export async function getFixedReferralCode(userId) {
     } catch (selErr) {
       // If meta column does not exist, fall back without reading meta
       const msg = String(selErr.message || '').toLowerCase();
-      if (/column\s+"?meta"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+meta\s+column/i.test(msg)) {
+      if (
+        /column\s+"?meta"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+meta\s+column/i.test(msg)
+      ) {
         const { data } = await supabase
           .from('user_wallet')
           .select('referal_code, referral_code, created_at')
@@ -225,8 +230,14 @@ export async function getFixedReferralCode(userId) {
     }
     const codeFromMeta = first?.meta?.referral_code
       ? String(first.meta.referral_code).trim()
-      : (first?.meta?.referal_code ? String(first.meta.referal_code).trim() : '');
-    const codeTop = first?.referral_code ? String(first.referral_code).trim() : (first?.referal_code ? String(first.referal_code).trim() : '');
+      : first?.meta?.referal_code
+        ? String(first.meta.referal_code).trim()
+        : '';
+    const codeTop = first?.referral_code
+      ? String(first.referral_code).trim()
+      : first?.referal_code
+        ? String(first.referal_code).trim()
+        : '';
     const code = codeFromMeta || codeTop || '';
     if (code) return { success: true, code };
     return { success: true, code: null };
@@ -264,7 +275,9 @@ export async function requestCashIn(userId, amount, method = 'gcash', meta = {})
         try {
           const v2 = await validateReferralCode(referralToUse);
           if (v2?.success && v2.data?.id) agentId = v2.data.id;
-        } catch (_) { /* ignore; DB may still accept by code only */ }
+        } catch (_) {
+          /* ignore; DB may still accept by code only */
+        }
       }
     } catch (refErr) {
       // Surface referral validation errors
@@ -292,11 +305,7 @@ export async function requestCashIn(userId, amount, method = 'gcash', meta = {})
 
     let data, error;
     try {
-      ({ data, error } = await supabase
-        .from('user_wallet')
-        .insert([payload])
-        .select('*')
-        .single());
+      ({ data, error } = await supabase.from('user_wallet').insert([payload]).select('*').single());
       if (error) throw error;
     } catch (insErr) {
       // If meta column is missing, retry without meta
@@ -314,13 +323,27 @@ export async function requestCashIn(userId, amount, method = 'gcash', meta = {})
         return d2;
       };
 
-      if (/column\s+"?meta"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+meta\s+column/i.test(msg)) {
+      if (
+        /column\s+"?meta"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+meta\s+column/i.test(msg)
+      ) {
         data = await stripAndRetry(payload, /^(meta)$/);
-      } else if (/column\s+"?referal_code"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+referal_code\s+column/i.test(msg)) {
+      } else if (
+        /column\s+"?referal_code"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+referal_code\s+column/i.test(
+          msg
+        )
+      ) {
         data = await stripAndRetry(payload, /^(referal_code)$/);
-      } else if (/column\s+"?referral_code"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+referral_code\s+column/i.test(msg)) {
+      } else if (
+        /column\s+"?referral_code"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+referral_code\s+column/i.test(
+          msg
+        )
+      ) {
         data = await stripAndRetry(payload, /^(referral_code)$/);
-      } else if (/column\s+"?agent_id"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+agent_id\s+column/i.test(msg)) {
+      } else if (
+        /column\s+"?agent_id"?\s+does\s+not\s+exist|could\s+not\s+find\s+the\s+agent_id\s+column/i.test(
+          msg
+        )
+      ) {
         data = await stripAndRetry(payload, /^(agent_id)$/);
       } else {
         throw insErr;
@@ -409,8 +432,8 @@ export async function getUserBalanceCents(userId) {
 }
 
 /** Utility helpers */
-export const toCents = (amount) => Math.round(Number(amount || 0) * 100);
-export const fromCents = (cents) => Number(((Number(cents || 0)) / 100).toFixed(2));
+export const toCents = amount => Math.round(Number(amount || 0) * 100);
+export const fromCents = cents => Number((Number(cents || 0) / 100).toFixed(2));
 
 /**
  * Sum of approved cash-ins in cents for a user.
@@ -430,7 +453,7 @@ export async function getApprovedCashInTotalCents(userId) {
     return { success: false, error: err.message || String(err), total_cents: 0 };
   }
 }
- 
+
 /**
  * Sum of pending cash-ins in cents for a user.
  */

@@ -1,51 +1,41 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
-import { 
-  Bell, 
-  Moon, 
-  Sun, 
-  Globe, 
-  Lock, 
-  Shield, 
-  Save,
-  ToggleLeft,
-  ToggleRight
-} from 'lucide-react';
+import { Bell, Moon, Sun, Globe, Lock, Shield, Save, ToggleLeft, ToggleRight } from 'lucide-react';
 
 const AgentSettings = () => {
   const { isDark, toggleTheme } = useTheme();
   const { show } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Settings state
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: false,
     language: 'en',
     securityAlerts: true,
-    twoFactorAuth: false
+    twoFactorAuth: false,
   });
 
-  const handleToggle = (setting) => {
+  const handleToggle = setting => {
     setSettings(prev => ({
       ...prev,
-      [setting]: !prev[setting]
+      [setting]: !prev[setting],
     }));
   };
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
     setSettings(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       show('Settings saved successfully!', { type: 'success' });
@@ -74,7 +64,11 @@ const AgentSettings = () => {
             <div className="bg-magnolia-100 dark:bg-blackswarm-700 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  {isDark ? <Moon className="w-5 h-5 text-bonfire-400 mr-3" /> : <Sun className="w-5 h-5 text-bonfire-500 mr-3" />}
+                  {isDark ? (
+                    <Moon className="w-5 h-5 text-bonfire-400 mr-3" />
+                  ) : (
+                    <Sun className="w-5 h-5 text-bonfire-500 mr-3" />
+                  )}
                   <div>
                     <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">
                       {isDark ? 'Dark Mode' : 'Light Mode'}
@@ -89,7 +83,11 @@ const AgentSettings = () => {
                   onClick={toggleTheme}
                   className="p-2 rounded-md bg-magnolia-200 dark:bg-blackswarm-600 hover:bg-magnolia-300 dark:hover:bg-blackswarm-500 transition-colors"
                 >
-                  {isDark ? <Sun className="w-5 h-5 text-magnolia-50" /> : <Moon className="w-5 h-5 text-blackswarm-800" />}
+                  {isDark ? (
+                    <Sun className="w-5 h-5 text-magnolia-50" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-blackswarm-800" />
+                  )}
                 </button>
               </div>
             </div>
@@ -105,8 +103,12 @@ const AgentSettings = () => {
                 <div className="flex items-center">
                   <Bell className="w-5 h-5 text-bonfire-500 dark:text-bonfire-400 mr-3" />
                   <div>
-                    <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">Email Notifications</p>
-                    <p className="text-sm text-blackswarm-500 dark:text-magnolia-400">Receive updates via email</p>
+                    <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">
+                      Email Notifications
+                    </p>
+                    <p className="text-sm text-blackswarm-500 dark:text-magnolia-400">
+                      Receive updates via email
+                    </p>
                   </div>
                 </div>
                 <button
@@ -114,10 +116,11 @@ const AgentSettings = () => {
                   onClick={() => handleToggle('emailNotifications')}
                   className="text-bonfire-600 dark:text-bonfire-400"
                 >
-                  {settings.emailNotifications ? 
-                    <ToggleRight className="w-8 h-8" /> : 
+                  {settings.emailNotifications ? (
+                    <ToggleRight className="w-8 h-8" />
+                  ) : (
                     <ToggleLeft className="w-8 h-8" />
-                  }
+                  )}
                 </button>
               </div>
 
@@ -125,8 +128,12 @@ const AgentSettings = () => {
                 <div className="flex items-center">
                   <Bell className="w-5 h-5 text-bonfire-500 dark:text-bonfire-400 mr-3" />
                   <div>
-                    <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">Push Notifications</p>
-                    <p className="text-sm text-blackswarm-500 dark:text-magnolia-400">Receive alerts on your device</p>
+                    <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">
+                      Push Notifications
+                    </p>
+                    <p className="text-sm text-blackswarm-500 dark:text-magnolia-400">
+                      Receive alerts on your device
+                    </p>
                   </div>
                 </div>
                 <button
@@ -134,10 +141,11 @@ const AgentSettings = () => {
                   onClick={() => handleToggle('pushNotifications')}
                   className="text-bonfire-600 dark:text-bonfire-400"
                 >
-                  {settings.pushNotifications ? 
-                    <ToggleRight className="w-8 h-8" /> : 
+                  {settings.pushNotifications ? (
+                    <ToggleRight className="w-8 h-8" />
+                  ) : (
                     <ToggleLeft className="w-8 h-8" />
-                  }
+                  )}
                 </button>
               </div>
             </div>
@@ -178,8 +186,12 @@ const AgentSettings = () => {
                 <div className="flex items-center">
                   <Shield className="w-5 h-5 text-bonfire-500 dark:text-bonfire-400 mr-3" />
                   <div>
-                    <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">Security Alerts</p>
-                    <p className="text-sm text-blackswarm-500 dark:text-magnolia-400">Get notified about suspicious activities</p>
+                    <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">
+                      Security Alerts
+                    </p>
+                    <p className="text-sm text-blackswarm-500 dark:text-magnolia-400">
+                      Get notified about suspicious activities
+                    </p>
                   </div>
                 </div>
                 <button
@@ -187,10 +199,11 @@ const AgentSettings = () => {
                   onClick={() => handleToggle('securityAlerts')}
                   className="text-bonfire-600 dark:text-bonfire-400"
                 >
-                  {settings.securityAlerts ? 
-                    <ToggleRight className="w-8 h-8" /> : 
+                  {settings.securityAlerts ? (
+                    <ToggleRight className="w-8 h-8" />
+                  ) : (
                     <ToggleLeft className="w-8 h-8" />
-                  }
+                  )}
                 </button>
               </div>
 
@@ -198,8 +211,12 @@ const AgentSettings = () => {
                 <div className="flex items-center">
                   <Lock className="w-5 h-5 text-bonfire-500 dark:text-bonfire-400 mr-3" />
                   <div>
-                    <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">Two-Factor Authentication</p>
-                    <p className="text-sm text-blackswarm-500 dark:text-magnolia-400">Add an extra layer of security</p>
+                    <p className="text-blackswarm-900 dark:text-magnolia-50 font-medium">
+                      Two-Factor Authentication
+                    </p>
+                    <p className="text-sm text-blackswarm-500 dark:text-magnolia-400">
+                      Add an extra layer of security
+                    </p>
                   </div>
                 </div>
                 <button
@@ -207,10 +224,11 @@ const AgentSettings = () => {
                   onClick={() => handleToggle('twoFactorAuth')}
                   className="text-bonfire-600 dark:text-bonfire-400"
                 >
-                  {settings.twoFactorAuth ? 
-                    <ToggleRight className="w-8 h-8" /> : 
+                  {settings.twoFactorAuth ? (
+                    <ToggleRight className="w-8 h-8" />
+                  ) : (
                     <ToggleLeft className="w-8 h-8" />
-                  }
+                  )}
                 </button>
               </div>
             </div>

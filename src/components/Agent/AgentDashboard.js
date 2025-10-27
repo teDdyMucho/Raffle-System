@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { 
-  BarChart3, 
-  Users, 
-  Ticket, 
-  Clock, 
+import {
+  BarChart3,
+  Users,
+  Ticket,
+  Clock,
   TrendingUp,
   Eye,
   Megaphone,
   Calendar,
   Target,
-  Activity
+  Activity,
 } from 'lucide-react';
 import AgentCommissionTracker from './AgentCommissionTracker';
 
@@ -41,7 +41,7 @@ const AgentDashboard = ({ onNavigate }) => {
     const now = new Date();
     const soonCount = activeRaffles.filter(r => {
       const end = new Date(r.endDate);
-      const diffH = (end - now) / (1000*60*60);
+      const diffH = (end - now) / (1000 * 60 * 60);
       return diffH > 0 && diffH <= closingSoonHrs;
     }).length;
 
@@ -51,31 +51,38 @@ const AgentDashboard = ({ onNavigate }) => {
         value: String(activeCount),
         change: loadingActive ? 'Loading…' : `${activeCount} active now`,
         icon: BarChart3,
-        color: 'bonfire'
+        color: 'bonfire',
       },
       {
         title: 'Tickets Sold',
         value: ticketsSold.toLocaleString(),
         change: loadingTickets ? 'Loading…' : 'Across all raffles',
         icon: Ticket,
-        color: 'embers'
+        color: 'embers',
       },
       {
         title: 'Total Participants',
         value: totalParticipants.toLocaleString(),
         change: loadingUsers ? 'Loading…' : 'All registered users',
         icon: Users,
-        color: 'bonfire'
+        color: 'bonfire',
       },
       {
         title: 'Raffles Closing Soon',
         value: String(soonCount),
         change: loadingActive ? '' : `Within ${closingSoonHrs}h`,
         icon: Clock,
-        color: 'embers'
-      }
+        color: 'embers',
+      },
     ];
-  }, [activeRaffles, loadingActive, totalUsersCount, loadingUsers, totalTicketsSold, loadingTickets]);
+  }, [
+    activeRaffles,
+    loadingActive,
+    totalUsersCount,
+    loadingUsers,
+    totalTicketsSold,
+    loadingTickets,
+  ]);
 
   const fetchActiveRaffles = async () => {
     try {
@@ -100,23 +107,25 @@ const AgentDashboard = ({ onNavigate }) => {
 
       // Hook up participants: count tickets per raffle
       try {
-        const participantCounts = await Promise.all(rows.map(async (raffle) => {
-          // Prefer counting by raffle_id; fallback to raffle_name match if needed
-          try {
-            const { count, error } = await supabase
-              .from('tickets')
-              .select('id', { count: 'exact', head: true })
-              .eq('raffle_id', raffle.id);
-            if (error) throw error;
-            return { id: raffle.id, count: Number(count || 0) };
-          } catch (e1) {
-            const { count: c2 } = await supabase
-              .from('tickets')
-              .select('id', { count: 'exact', head: true })
-              .eq('raffle_name', raffle.title);
-            return { id: raffle.id, count: Number(c2 || 0) };
-          }
-        }));
+        const participantCounts = await Promise.all(
+          rows.map(async raffle => {
+            // Prefer counting by raffle_id; fallback to raffle_name match if needed
+            try {
+              const { count, error } = await supabase
+                .from('tickets')
+                .select('id', { count: 'exact', head: true })
+                .eq('raffle_id', raffle.id);
+              if (error) throw error;
+              return { id: raffle.id, count: Number(count || 0) };
+            } catch (e1) {
+              const { count: c2 } = await supabase
+                .from('tickets')
+                .select('id', { count: 'exact', head: true })
+                .eq('raffle_name', raffle.title);
+              return { id: raffle.id, count: Number(c2 || 0) };
+            }
+          })
+        );
         const map = Object.fromEntries(participantCounts.map(x => [x.id, x.count]));
         rows = rows.map(r => ({ ...r, participants: map[r.id] ?? r.participants }));
       } catch (pcErr) {
@@ -183,7 +192,7 @@ const AgentDashboard = ({ onNavigate }) => {
     fetchTotalTicketsSold();
   }, []);
 
-  const getTimeRemaining = (endDate) => {
+  const getTimeRemaining = endDate => {
     const total = Date.parse(endDate) - Date.parse(currentTime);
     const hours = Math.floor(total / (1000 * 60 * 60));
     const minutes = Math.floor((total / 1000 / 60) % 60);
@@ -208,18 +217,18 @@ const AgentDashboard = ({ onNavigate }) => {
     );
   };
 
-  const getColorClasses = (color) => {
+  const getColorClasses = color => {
     const colors = {
       bonfire: {
         bg: 'bg-bonfire-100 dark:bg-bonfire-900/30',
         text: 'text-bonfire-600 dark:text-bonfire-400',
-        icon: 'text-bonfire-600 dark:text-bonfire-400'
+        icon: 'text-bonfire-600 dark:text-bonfire-400',
       },
       embers: {
         bg: 'bg-embers-100 dark:bg-embers-900/30',
         text: 'text-embers-600 dark:text-embers-400',
-        icon: 'text-embers-600 dark:text-embers-400'
-      }
+        icon: 'text-embers-600 dark:text-embers-400',
+      },
     };
     return colors[color] || colors.bonfire;
   };
@@ -229,12 +238,8 @@ const AgentDashboard = ({ onNavigate }) => {
       {/* Welcome + Quick Actions Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-gradient-to-r from-bonfire-500 to-embers-500 rounded-lg p-6 text-white">
-          <h1 className="text-2xl font-bold mb-2">
-            Welcome back, {user?.name || 'Agent'}! 👋
-          </h1>
-          <p className="text-bonfire-100">
-            Here's what's happening with your raffles today.
-          </p>
+          <h1 className="text-2xl font-bold mb-2">Welcome back, {user?.name || 'Agent'}! 👋</h1>
+          <p className="text-bonfire-100">Here's what's happening with your raffles today.</p>
         </div>
         <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-4 flex items-center">
@@ -246,7 +251,12 @@ const AgentDashboard = ({ onNavigate }) => {
               onClick={() => onNavigate && onNavigate('commission')}
               className="w-full flex items-center justify-center px-4 py-3 border-2 border-bonfire-500 text-bonfire-600 dark:text-bonfire-400 rounded-lg hover:bg-bonfire-50 dark:hover:bg-bonfire-900/20 transition-all duration-200"
             >
-              <span className="mr-2 inline-flex items-center justify-center w-5 h-5 font-semibold" aria-label="Philippine Peso">₱</span>
+              <span
+                className="mr-2 inline-flex items-center justify-center w-5 h-5 font-semibold"
+                aria-label="Philippine Peso"
+              >
+                ₱
+              </span>
               Commission Tracker
             </button>
           </div>
@@ -258,14 +268,16 @@ const AgentDashboard = ({ onNavigate }) => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           const colors = getColorClasses(stat.color);
-          
+
           return (
             <div
               key={index}
               className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 ${colors.bg} rounded-lg flex items-center justify-center`}>
+                <div
+                  className={`w-12 h-12 ${colors.bg} rounded-lg flex items-center justify-center`}
+                >
                   <Icon className={`w-6 h-6 ${colors.icon}`} />
                 </div>
                 <TrendingUp className="w-4 h-4 text-green-500" />
@@ -276,9 +288,7 @@ const AgentDashboard = ({ onNavigate }) => {
               <p className="text-sm text-blackswarm-600 dark:text-magnolia-400 mb-2">
                 {stat.title}
               </p>
-              <p className="text-xs text-green-600 dark:text-green-400">
-                {stat.change}
-              </p>
+              <p className="text-xs text-green-600 dark:text-green-400">{stat.change}</p>
             </div>
           );
         })}
@@ -300,49 +310,58 @@ const AgentDashboard = ({ onNavigate }) => {
 
             <div className="space-y-4">
               {loadingActive && (
-                <div className="text-center text-sm text-blackswarm-500 dark:text-magnolia-400 py-6">Loading active raffles…</div>
+                <div className="text-center text-sm text-blackswarm-500 dark:text-magnolia-400 py-6">
+                  Loading active raffles…
+                </div>
               )}
               {!loadingActive && activeRaffles.length === 0 && (
-                <div className="text-center text-sm text-blackswarm-500 dark:text-magnolia-400 py-6">No active raffles found.</div>
-              )}
-              {!loadingActive && activeRaffles.map((raffle) => (
-                <div
-                  key={raffle.id}
-                  className="border border-magnolia-200 dark:border-blackswarm-700 rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-blackswarm-900 dark:text-magnolia-50">
-                      {raffle.title}
-                    </h3>
-                    <CountdownTimer endDate={raffle.endDate} />
-                  </div>
-
-                  {/* Tickets/progress removed per request */}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-blackswarm-500 dark:text-magnolia-400">
-                      <Users className="w-4 h-4 mr-1" />
-                      {raffle.participants} participants
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => show(`Viewing details for: ${raffle.title}`, { type: 'info' })}
-                        className="flex items-center px-3 py-1 text-xs bg-bonfire-100 dark:bg-bonfire-900/30 text-bonfire-600 dark:text-bonfire-400 rounded-md hover:bg-bonfire-200 dark:hover:bg-bonfire-900/50 transition-colors"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => show(`Announcement sent for: ${raffle.title}`, { type: 'success' })}
-                        className="flex items-center px-3 py-1 text-xs bg-embers-100 dark:bg-embers-900/30 text-embers-600 dark:text-embers-400 rounded-md hover:bg-embers-200 dark:hover:bg-embers-900/50 transition-colors"
-                      >
-                        <Megaphone className="w-3 h-3 mr-1" />
-                        Announce
-                      </button>
-                    </div>
-                  </div>
+                <div className="text-center text-sm text-blackswarm-500 dark:text-magnolia-400 py-6">
+                  No active raffles found.
                 </div>
-              ))}
+              )}
+              {!loadingActive &&
+                activeRaffles.map(raffle => (
+                  <div
+                    key={raffle.id}
+                    className="border border-magnolia-200 dark:border-blackswarm-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-blackswarm-900 dark:text-magnolia-50">
+                        {raffle.title}
+                      </h3>
+                      <CountdownTimer endDate={raffle.endDate} />
+                    </div>
+
+                    {/* Tickets/progress removed per request */}
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-sm text-blackswarm-500 dark:text-magnolia-400">
+                        <Users className="w-4 h-4 mr-1" />
+                        {raffle.participants} participants
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() =>
+                            show(`Viewing details for: ${raffle.title}`, { type: 'info' })
+                          }
+                          className="flex items-center px-3 py-1 text-xs bg-bonfire-100 dark:bg-bonfire-900/30 text-bonfire-600 dark:text-bonfire-400 rounded-md hover:bg-bonfire-200 dark:hover:bg-bonfire-900/50 transition-colors"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View Details
+                        </button>
+                        <button
+                          onClick={() =>
+                            show(`Announcement sent for: ${raffle.title}`, { type: 'success' })
+                          }
+                          className="flex items-center px-3 py-1 text-xs bg-embers-100 dark:bg-embers-900/30 text-embers-600 dark:text-embers-400 rounded-md hover:bg-embers-200 dark:hover:bg-embers-900/50 transition-colors"
+                        >
+                          <Megaphone className="w-3 h-3 mr-1" />
+                          Announce
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
         </div>

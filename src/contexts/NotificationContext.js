@@ -18,11 +18,35 @@ export const NotificationProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // Fallback mock notifications if remote fetch fails
-  const mockSeed = useMemo(() => ([
-    { id: 'seed-1', title: 'Winner announced', desc: 'MacBook Air M3 raffle concluded', href: '/user/results', unread: true, created_at: new Date().toISOString() },
-    { id: 'seed-2', title: 'Raffle closing soon', desc: 'iPhone 15 Pro ends in 2h', href: '/user/join', unread: true, created_at: new Date().toISOString() },
-    { id: 'seed-3', title: 'New raffle added', desc: 'Gaming Setup Bundle now live', href: '/user/join', unread: false, created_at: new Date().toISOString() },
-  ]), []);
+  const mockSeed = useMemo(
+    () => [
+      {
+        id: 'seed-1',
+        title: 'Winner announced',
+        desc: 'MacBook Air M3 raffle concluded',
+        href: '/user/results',
+        unread: true,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 'seed-2',
+        title: 'Raffle closing soon',
+        desc: 'iPhone 15 Pro ends in 2h',
+        href: '/user/join',
+        unread: true,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 'seed-3',
+        title: 'New raffle added',
+        desc: 'Gaming Setup Bundle now live',
+        href: '/user/join',
+        unread: false,
+        created_at: new Date().toISOString(),
+      },
+    ],
+    []
+  );
 
   // Transform raffles into a notifications list
   const buildFromRaffles = useCallback((raffles = []) => {
@@ -99,9 +123,9 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [buildFromRaffles, mockSeed]);
 
-  const markAsRead = useCallback(async (id) => {
+  const markAsRead = useCallback(async id => {
     // Local-only read state, since notifications are derived from raffles
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, unread: false } : n)));
   }, []);
 
   const markAllRead = useCallback(async () => {
@@ -109,8 +133,17 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
   }, []);
 
-  const addLocal = useCallback((notif) => {
-    setNotifications(prev => [{ id: notif.id || Math.random().toString(36).slice(2), unread: true, created_at: new Date().toISOString(), href: '/user', ...notif }, ...prev]);
+  const addLocal = useCallback(notif => {
+    setNotifications(prev => [
+      {
+        id: notif.id || Math.random().toString(36).slice(2),
+        unread: true,
+        created_at: new Date().toISOString(),
+        href: '/user',
+        ...notif,
+      },
+      ...prev,
+    ]);
   }, []);
 
   // Subscribe to realtime changes in raffles
@@ -122,13 +155,15 @@ export const NotificationProvider = ({ children }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'raffles' }, () => {
         fetchNotifications();
       })
-      .subscribe((status) => {
+      .subscribe(status => {
         // eslint-disable-next-line no-console
         if (status === 'SUBSCRIBED') console.log('[Notifications] Subscribed to raffles changes');
       });
 
     return () => {
-      try { supabase.removeChannel(channel); } catch (_) {}
+      try {
+        supabase.removeChannel(channel);
+      } catch (_) {}
     };
   }, [fetchNotifications]);
 
@@ -143,9 +178,5 @@ export const NotificationProvider = ({ children }) => {
     refresh: fetchNotifications,
   };
 
-  return (
-    <NotificationContext.Provider value={value}>
-      {children}
-    </NotificationContext.Provider>
-  );
+  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 };

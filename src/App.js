@@ -127,9 +127,11 @@ function AppRoutes() {
       <Route
         path="*"
         element={
-          isAuthenticated
-            ? <Navigate to={user.role === 'agent' ? '/agent' : '/user'} replace />
-            : <Navigate to="/login" replace />
+          isAuthenticated ? (
+            <Navigate to={user.role === 'agent' ? '/agent' : '/user'} replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
         }
       />
     </Routes>

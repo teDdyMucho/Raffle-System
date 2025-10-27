@@ -3,17 +3,7 @@ import ImageWithFallback from '../common/ImageWithFallback';
 import appLogo from '../../images/allen (1).png';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { 
-  Menu, 
-  X, 
-  Sun, 
-  Moon, 
-  BarChart3, 
-  DollarSign,
-  User,
-  LogOut,
-  Settings
-} from 'lucide-react';
+import { Menu, X, Sun, Moon, BarChart3, DollarSign, User, LogOut, Settings } from 'lucide-react';
 
 const AgentHeader = ({ currentPage, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,7 +22,7 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
     logout();
   };
 
-  const handleNavigation = (pageId) => {
+  const handleNavigation = pageId => {
     onNavigate(pageId);
     setIsMobileMenuOpen(false);
   };
@@ -44,8 +34,14 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 mr-6">
             <div className="flex-shrink-0 flex items-center">
-              <ImageWithFallback src={appLogo} alt="Raffle Haven" className="h-12 w-12 mr-3 rounded" />
-              <h1 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50">Raffle Haven</h1>
+              <ImageWithFallback
+                src={appLogo}
+                alt="Raffle Haven"
+                className="h-12 w-12 mr-3 rounded"
+              />
+              <h1 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50">
+                Raffle Haven
+              </h1>
             </div>
           </div>
 
@@ -53,7 +49,7 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
           <nav className="hidden md:flex flex-1 items-center justify-center px-2 space-x-6 lg:space-x-12">
             {/* md: show first 3 + More; lg+: show all */}
             <div className="hidden lg:flex items-center gap-6">
-              {navigationItems.map((item) => {
+              {navigationItems.map(item => {
                 const Icon = item.icon;
                 return (
                   <button
@@ -72,7 +68,7 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
               })}
             </div>
             <div className="flex lg:hidden items-center gap-6">
-              {visibleMd.map((item) => {
+              {visibleMd.map(item => {
                 const Icon = item.icon;
                 return (
                   <button
@@ -92,7 +88,7 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
               {/* More dropdown */}
               <div className="relative">
                 <button
-                  onClick={() => setIsMoreOpen((v) => !v)}
+                  onClick={() => setIsMoreOpen(v => !v)}
                   className="px-4 py-2.5 rounded-md text-sm font-medium text-blackswarm-600 dark:text-magnolia-400 hover:text-bonfire-600 dark:hover:text-bonfire-400 hover:bg-magnolia-100 dark:hover:bg-blackswarm-700 transition-colors"
                 >
                   More
@@ -100,12 +96,15 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
                 {isMoreOpen && (
                   <div className="absolute left-0 mt-2 w-56 bg-magnolia-50 dark:bg-blackswarm-800 rounded-md shadow-lg border border-magnolia-200 dark:border-blackswarm-700 z-50">
                     <div className="py-1">
-                      {overflowMd.map((item) => {
+                      {overflowMd.map(item => {
                         const Icon = item.icon;
                         return (
                           <button
                             key={item.id}
-                            onClick={() => { handleNavigation(item.id); setIsMoreOpen(false); }}
+                            onClick={() => {
+                              handleNavigation(item.id);
+                              setIsMoreOpen(false);
+                            }}
                             className={`flex items-center w-full px-4 py-2 text-sm text-left ${
                               currentPage === item.id
                                 ? 'text-bonfire-600 dark:text-bonfire-400 bg-bonfire-50 dark:bg-bonfire-900/20'
@@ -121,7 +120,7 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
                   </div>
                 )}
               </div>
-          </div>
+            </div>
           </nav>
 
           {/* Right side - Theme toggle and inline actions */}
@@ -172,7 +171,7 @@ const AgentHeader = ({ currentPage, onNavigate }) => {
         {isMobileMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 border-t border-magnolia-200 dark:border-blackswarm-700">
-              {navigationItems.map((item) => {
+              {navigationItems.map(item => {
                 const Icon = item.icon;
                 return (
                   <button

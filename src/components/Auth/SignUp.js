@@ -18,19 +18,19 @@ const SignUp = () => {
   const { show } = useToast();
   const navigate = useNavigate();
 
-  const validatePassword = (pwd) => {
+  const validatePassword = pwd => {
     if (pwd.length < 6) return 'Password must be at least 6 characters';
     if (!/[A-Za-z]/.test(pwd)) return 'Password must contain at least one letter';
     if (!/[0-9]/.test(pwd)) return 'Password must contain at least one number';
     return null;
   };
 
-  const validateEmail = (email) => {
+  const validateEmail = email => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email) ? null : 'Please enter a valid email address';
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setError('');
 
@@ -65,7 +65,10 @@ const SignUp = () => {
     setLoading(false);
 
     if (res.success) {
-      show('Account created successfully! Welcome to Raffle System!', { type: 'success', duration: 4000 });
+      show('Account created successfully! Welcome to Raffle System!', {
+        type: 'success',
+        duration: 4000,
+      });
       // Only regular users can sign up; send them to user area
       navigate('/user');
     } else {
@@ -97,15 +100,21 @@ const SignUp = () => {
 
             {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
-                Display Name <span className="text-xs text-blackswarm-500 dark:text-magnolia-500">(optional)</span>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+              >
+                Display Name{' '}
+                <span className="text-xs text-blackswarm-500 dark:text-magnolia-500">
+                  (optional)
+                </span>
               </label>
               <input
                 id="name"
                 name="name"
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={e => setName(e.target.value)}
                 className="w-full px-3 py-2 border border-magnolia-300 dark:border-blackswarm-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-bonfire-500 dark:bg-blackswarm-700 dark:text-magnolia-50"
                 placeholder="e.g., John User"
               />
@@ -113,7 +122,10 @@ const SignUp = () => {
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -124,7 +136,7 @@ const SignUp = () => {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 border border-magnolia-300 dark:border-blackswarm-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-bonfire-500 dark:bg-blackswarm-700 dark:text-magnolia-50"
                   placeholder="you@example.com"
                 />
@@ -133,7 +145,10 @@ const SignUp = () => {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+              >
                 Password
               </label>
               <div className="relative">
@@ -144,7 +159,7 @@ const SignUp = () => {
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-2 border border-magnolia-300 dark:border-blackswarm-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-bonfire-500 dark:bg-blackswarm-700 dark:text-magnolia-50"
                   placeholder="Create a password"
                 />
@@ -163,7 +178,10 @@ const SignUp = () => {
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirm" className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1">
+              <label
+                htmlFor="confirm"
+                className="block text-sm font-medium text-blackswarm-700 dark:text-magnolia-300 mb-1"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -174,7 +192,7 @@ const SignUp = () => {
                   type={showConfirm ? 'text' : 'password'}
                   required
                   value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
+                  onChange={e => setConfirm(e.target.value)}
                   className="w-full pl-10 pr-10 py-2 border border-magnolia-300 dark:border-blackswarm-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-bonfire-500 dark:bg-blackswarm-700 dark:text-magnolia-50"
                   placeholder="Retype your password"
                 />
@@ -206,7 +224,9 @@ const SignUp = () => {
 
             <p className="text-center text-sm text-blackswarm-600 dark:text-magnolia-400">
               Already have an account?{' '}
-              <Link to="/login" className="text-bonfire-600 dark:text-bonfire-400 hover:underline">Sign in</Link>
+              <Link to="/login" className="text-bonfire-600 dark:text-bonfire-400 hover:underline">
+                Sign in
+              </Link>
             </p>
           </div>
         </form>

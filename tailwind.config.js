@@ -1,8 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
@@ -83,7 +81,7 @@ module.exports = {
           700: '#881515',
           800: '#701212',
           900: '#5d1010',
-        }
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -98,9 +96,9 @@ module.exports = {
         slideUp: {
           '0%': { transform: 'translateY(20px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
-        }
-      }
+        },
+      },
     },
   },
   plugins: [],
-}
+};

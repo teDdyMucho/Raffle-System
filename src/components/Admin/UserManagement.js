@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { Search, Filter, UserCheck, UserX, Mail, Calendar, Ticket, Ban, CheckCircle } from 'lucide-react';
+import {
+  Search,
+  Filter,
+  UserCheck,
+  UserX,
+  Mail,
+  Calendar,
+  Ticket,
+  Ban,
+  CheckCircle,
+} from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 
 const UserManagement = () => {
@@ -22,7 +32,7 @@ const UserManagement = () => {
       totalSpent: 84,
       lastActivity: '2024-01-22',
       rafflesWon: 1,
-      avatar: 'S'
+      avatar: 'S',
     },
     {
       id: 2,
@@ -34,7 +44,7 @@ const UserManagement = () => {
       totalSpent: 56,
       lastActivity: '2024-01-21',
       rafflesWon: 0,
-      avatar: 'J'
+      avatar: 'J',
     },
     {
       id: 3,
@@ -46,7 +56,7 @@ const UserManagement = () => {
       totalSpent: 105,
       lastActivity: '2024-01-20',
       rafflesWon: 2,
-      avatar: 'E'
+      avatar: 'E',
     },
     {
       id: 4,
@@ -58,7 +68,7 @@ const UserManagement = () => {
       totalSpent: 21,
       lastActivity: '2024-01-18',
       rafflesWon: 0,
-      avatar: 'M'
+      avatar: 'M',
     },
     {
       id: 5,
@@ -70,7 +80,7 @@ const UserManagement = () => {
       totalSpent: 154,
       lastActivity: '2024-01-22',
       rafflesWon: 1,
-      avatar: 'L'
+      avatar: 'L',
     },
     {
       id: 6,
@@ -82,7 +92,7 @@ const UserManagement = () => {
       totalSpent: 35,
       lastActivity: '2024-01-10',
       rafflesWon: 0,
-      avatar: 'D'
+      avatar: 'D',
     },
     {
       id: 7,
@@ -94,7 +104,7 @@ const UserManagement = () => {
       totalSpent: 63,
       lastActivity: '2024-01-22',
       rafflesWon: 0,
-      avatar: 'A'
+      avatar: 'A',
     },
     {
       id: 8,
@@ -106,17 +116,18 @@ const UserManagement = () => {
       totalSpent: 126,
       lastActivity: '2024-01-21',
       rafflesWon: 1,
-      avatar: 'J'
-    }
+      avatar: 'J',
+    },
   ];
 
   const statuses = ['all', 'active', 'inactive', 'banned'];
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -131,7 +142,7 @@ const UserManagement = () => {
     show(`User ${action} successfully!`, { type: 'success' });
   };
 
-  const handleBulkAction = (action) => {
+  const handleBulkAction = action => {
     if (selectedUsers.length === 0) {
       show('Please select users first', { type: 'warning' });
       return;
@@ -141,11 +152,9 @@ const UserManagement = () => {
     setSelectedUsers([]);
   };
 
-  const toggleUserSelection = (userId) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
+  const toggleUserSelection = userId => {
+    setSelectedUsers(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
     );
   };
 
@@ -159,21 +168,29 @@ const UserManagement = () => {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'inactive': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'banned': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
+      case 'active':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'inactive':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'banned':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = status => {
     switch (status) {
-      case 'active': return <UserCheck className="w-4 h-4" />;
-      case 'inactive': return <UserX className="w-4 h-4" />;
-      case 'banned': return <Ban className="w-4 h-4" />;
-      default: return <UserCheck className="w-4 h-4" />;
+      case 'active':
+        return <UserCheck className="w-4 h-4" />;
+      case 'inactive':
+        return <UserX className="w-4 h-4" />;
+      case 'banned':
+        return <Ban className="w-4 h-4" />;
+      default:
+        return <UserCheck className="w-4 h-4" />;
     }
   };
 
@@ -187,7 +204,9 @@ const UserManagement = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">User Management</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage user accounts and monitor user activity</p>
+        <p className="text-gray-600 dark:text-gray-400">
+          Manage user accounts and monitor user activity
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -199,7 +218,7 @@ const UserManagement = () => {
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{totalUsers}</h3>
           <p className="text-gray-600 dark:text-gray-400">Total Users</p>
         </div>
-        
+
         <div className="card text-center">
           <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
             <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -207,7 +226,7 @@ const UserManagement = () => {
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{activeUsers}</h3>
           <p className="text-gray-600 dark:text-gray-400">Active Users</p>
         </div>
-        
+
         <div className="card text-center">
           <div className="bg-red-100 dark:bg-red-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
             <Ban className="w-6 h-6 text-red-600 dark:text-red-400" />
@@ -215,7 +234,7 @@ const UserManagement = () => {
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{bannedUsers}</h3>
           <p className="text-gray-600 dark:text-gray-400">Banned Users</p>
         </div>
-        
+
         <div className="card text-center">
           <div className="bg-purple-100 dark:bg-purple-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-purple-600 dark:text-purple-400 font-bold text-lg">$</span>
@@ -235,23 +254,25 @@ const UserManagement = () => {
                 type="text"
                 placeholder="Search users by name or email..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Filter className="w-4 h-4 text-gray-500" />
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={e => setStatusFilter(e.target.value)}
                 className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
               >
                 {statuses.map(status => (
                   <option key={status} value={status}>
-                    {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
+                    {status === 'all'
+                      ? 'All Status'
+                      : status.charAt(0).toUpperCase() + status.slice(1)}
                   </option>
                 ))}
               </select>
@@ -265,10 +286,7 @@ const UserManagement = () => {
                 >
                   Activate ({selectedUsers.length})
                 </button>
-                <button
-                  onClick={() => handleBulkAction('ban')}
-                  className="btn-danger text-sm"
-                >
+                <button onClick={() => handleBulkAction('ban')} className="btn-danger text-sm">
                   Ban ({selectedUsers.length})
                 </button>
               </div>
@@ -286,7 +304,9 @@ const UserManagement = () => {
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={pagedUsers.length > 0 && pagedUsers.every(u => selectedUsers.includes(u.id))}
+                    checked={
+                      pagedUsers.length > 0 && pagedUsers.every(u => selectedUsers.includes(u.id))
+                    }
                     onChange={selectAllUsers}
                     className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                   />
@@ -309,7 +329,7 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {pagedUsers.map((user) => (
+              {pagedUsers.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-6 py-4">
                     <input
@@ -336,9 +356,13 @@ const UserManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}
+                    >
                       {getStatusIcon(user.status)}
-                      <span className="ml-1">{user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span>
+                      <span className="ml-1">
+                        {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                      </span>
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
@@ -405,7 +429,9 @@ const UserManagement = () => {
         {filteredUsers.length === 0 && (
           <div className="text-center py-12">
             <UserCheck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No users found</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No users found
+            </h3>
             <p className="text-gray-600 dark:text-gray-400">
               Try adjusting your search or filter criteria.
             </p>
@@ -418,8 +444,12 @@ const UserManagement = () => {
         <div className="card">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700 dark:text-gray-300">
-              Showing <span className="font-medium">{filteredUsers.length === 0 ? 0 : startIdx + 1}-{Math.min(endIdx, filteredUsers.length)}</span> of{' '}
-              <span className="font-medium">{filteredUsers.length}</span> users
+              Showing{' '}
+              <span className="font-medium">
+                {filteredUsers.length === 0 ? 0 : startIdx + 1}-
+                {Math.min(endIdx, filteredUsers.length)}
+              </span>{' '}
+              of <span className="font-medium">{filteredUsers.length}</span> users
             </div>
             <div className="flex space-x-2">
               <button

@@ -41,8 +41,14 @@ const PopupAds = ({ open, onClose, images, imagesLight, imagesDark }) => {
 
   if (!open) return null;
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center select-none p-3 sm:p-6 transition-opacity duration-300 ${entered ? 'bg-black/70 opacity-100' : 'bg-black/0 opacity-0'}`}>
-      <div className={`bg-white dark:bg-neutral-900 dark:text-neutral-100 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-3xl relative flex flex-col items-center transform transition-all duration-300 ${entered ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2'}`} role="dialog" aria-modal="true">
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center select-none p-3 sm:p-6 transition-opacity duration-300 ${entered ? 'bg-black/70 opacity-100' : 'bg-black/0 opacity-0'}`}
+    >
+      <div
+        className={`bg-white dark:bg-neutral-900 dark:text-neutral-100 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-3xl relative flex flex-col items-center transform transition-all duration-300 ${entered ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2'}`}
+        role="dialog"
+        aria-modal="true"
+      >
         <button
           className={`absolute top-2 right-2 text-gray-700 dark:text-neutral-300 text-2xl font-bold ${canClose ? 'hover:text-red-500 dark:hover:text-red-400' : 'opacity-50 cursor-not-allowed'}`}
           onClick={() => {
@@ -60,11 +66,21 @@ const PopupAds = ({ open, onClose, images, imagesLight, imagesDark }) => {
         </button>
         <div className="w-full flex items-center justify-between mb-3">
           <div className="text-sm font-semibold text-gray-800 dark:text-neutral-100">Promotion</div>
-          <div className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300">{index + 1}/{ads.length}</div>
+          <div className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300">
+            {index + 1}/{ads.length}
+          </div>
         </div>
-        <img key={index} src={ads[index]} alt={`Promo Ad ${index + 1}`} className="w-full max-h-[75vh] object-contain rounded transition-opacity duration-300 opacity-100" draggable={false} />
+        <img
+          key={index}
+          src={ads[index]}
+          alt={`Promo Ad ${index + 1}`}
+          className="w-full max-h-[75vh] object-contain rounded transition-opacity duration-300 opacity-100"
+          draggable={false}
+        />
         {!canClose && (
-          <p className="mt-3 text-xs text-gray-500 dark:text-neutral-400">You can close this in 3 seconds…</p>
+          <p className="mt-3 text-xs text-gray-500 dark:text-neutral-400">
+            You can close this in 3 seconds…
+          </p>
         )}
       </div>
     </div>

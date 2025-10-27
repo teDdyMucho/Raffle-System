@@ -16,7 +16,6 @@ const UserLanding = () => {
   const [loadingRaffles, setLoadingRaffles] = useState(true);
   const [participantsCount, setParticipantsCount] = useState(0);
   const [loadingParticipants, setLoadingParticipants] = useState(true);
-  
 
   const fetchActive = async () => {
     try {
@@ -38,8 +37,6 @@ const UserLanding = () => {
       setLoadingRaffles(false);
     }
   };
-
-  
 
   const fetchParticipants = async () => {
     try {
@@ -77,7 +74,7 @@ const UserLanding = () => {
     setActiveCount(still.length);
   }, [currentTime, allActiveRaffles]);
 
-  const getTimeRemaining = (endDate) => {
+  const getTimeRemaining = endDate => {
     // Normalize date-only to end of day local to prevent early ending due to UTC parsing
     let end;
     if (typeof endDate === 'string') {
@@ -113,11 +110,15 @@ const UserLanding = () => {
           <span className="text-xs text-bonfire-600 dark:text-bonfire-400 ml-1">h</span>
         </div>
         <div className="bg-bonfire-100 dark:bg-bonfire-900/30 px-2 py-1 rounded">
-          <span className="font-bold text-bonfire-700 dark:text-bonfire-300">{timeLeft.minutes}</span>
+          <span className="font-bold text-bonfire-700 dark:text-bonfire-300">
+            {timeLeft.minutes}
+          </span>
           <span className="text-xs text-bonfire-600 dark:text-bonfire-400 ml-1">m</span>
         </div>
         <div className="bg-bonfire-100 dark:bg-bonfire-900/30 px-2 py-1 rounded">
-          <span className="font-bold text-bonfire-700 dark:text-bonfire-300">{timeLeft.seconds}</span>
+          <span className="font-bold text-bonfire-700 dark:text-bonfire-300">
+            {timeLeft.seconds}
+          </span>
           <span className="text-xs text-bonfire-600 dark:text-bonfire-400 ml-1">s</span>
         </div>
       </div>
@@ -134,18 +135,22 @@ const UserLanding = () => {
               <Gift className="w-12 h-12" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Welcome to Raffle System!
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">Welcome to Raffle System!</h1>
           <p className="text-xl md:text-2xl mb-8 text-bonfire-100">
             Your chance to win amazing prizes starts here, {user?.name}!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button onClick={() => navigate('/user/join')} className="bg-magnolia-50 text-bonfire-600 px-8 py-3 rounded-lg font-semibold hover:bg-magnolia-100 transition-colors duration-200 flex items-center justify-center">
+            <button
+              onClick={() => navigate('/user/join')}
+              className="bg-magnolia-50 text-bonfire-600 px-8 py-3 rounded-lg font-semibold hover:bg-magnolia-100 transition-colors duration-200 flex items-center justify-center"
+            >
               Join Active Raffles
               <ArrowRight className="w-5 h-5 ml-2" />
             </button>
-            <button onClick={() => navigate('/user/results')} className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors duration-200 flex items-center justify-center">
+            <button
+              onClick={() => navigate('/user/results')}
+              className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors duration-200 flex items-center justify-center"
+            >
               Show Results
               <Trophy className="w-5 h-5 ml-2" />
             </button>
@@ -159,10 +164,12 @@ const UserLanding = () => {
           <div className="bg-gradient-to-br from-bonfire-100 to-bonfire-200 dark:from-bonfire-900/30 dark:to-bonfire-800/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
             <Ticket className="w-8 h-8 text-bonfire-600 dark:text-bonfire-400" />
           </div>
-          <h3 className="text-3xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-3">{activeCount}</h3>
+          <h3 className="text-3xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-3">
+            {activeCount}
+          </h3>
           <p className="text-blackswarm-600 dark:text-magnolia-400 font-medium">Active Raffles</p>
         </div>
-        
+
         <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-xl shadow-xl p-8 text-center transform hover:scale-105 transition-all duration-300 border border-magnolia-200 dark:border-blackswarm-700">
           <div className="bg-gradient-to-br from-embers-100 to-embers-200 dark:from-embers-900/30 dark:to-embers-800/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
             <Users className="w-8 h-8 text-embers-600 dark:text-embers-400" />
@@ -170,16 +177,22 @@ const UserLanding = () => {
           <h3 className="text-3xl font-bold text-blackswarm-900 dark:text-magnolia-50 mb-3">
             {loadingParticipants ? 'Loading…' : participantsCount.toLocaleString()}
           </h3>
-          <p className="text-blackswarm-600 dark:text-magnolia-400 font-medium">Total Participants</p>
+          <p className="text-blackswarm-600 dark:text-magnolia-400 font-medium">
+            Total Participants
+          </p>
         </div>
-
       </div>
 
       {/* Active Raffles */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-blackswarm-900 dark:text-magnolia-50">🔥 Hot Raffles</h2>
-          <button onClick={() => navigate('/user/join')} className="text-bonfire-600 dark:text-bonfire-400 hover:text-bonfire-700 dark:hover:text-bonfire-300 font-medium flex items-center">
+          <h2 className="text-2xl font-bold text-blackswarm-900 dark:text-magnolia-50">
+            🔥 Hot Raffles
+          </h2>
+          <button
+            onClick={() => navigate('/user/join')}
+            className="text-bonfire-600 dark:text-bonfire-400 hover:text-bonfire-700 dark:hover:text-bonfire-300 font-medium flex items-center"
+          >
             View All
             <ArrowRight className="w-4 h-4 ml-1" />
           </button>
@@ -199,58 +212,66 @@ const UserLanding = () => {
               <p className="text-sm">Check back soon for exciting new prizes!</p>
             </div>
           )}
-          {!loadingRaffles && activeRaffles.map((raffle, index) => (
-            <div
-              key={raffle.id}
-              className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-magnolia-200 dark:border-blackswarm-700"
-            >
-              <div className="text-center mb-4">
-                <div className="text-4xl mb-2">
-                  {raffle.image_url ? (
-                    <img
-                      src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
-                      alt={raffle.title}
-                      className="w-full h-32 object-cover rounded-md mb-3"
-                      onError={(e) => { e.currentTarget.src = TRANSPARENT_PIXEL; }}
-                    />
-                  ) : (
-                    '🎁'
-                  )}
-                </div>
-                <h3 className="text-lg font-semibold text-blackswarm-900 dark:text-magnolia-50 mb-2">
-                  {raffle.title}
-                </h3>
-                <p className="text-blackswarm-600 dark:text-magnolia-400 text-sm mb-3">
-                  {raffle.description}
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-xs text-blackswarm-500 dark:text-magnolia-400 mb-1">Time Remaining</p>
-                    <CountdownTimer endDate={raffle.end_date} />
+          {!loadingRaffles &&
+            activeRaffles.map((raffle, index) => (
+              <div
+                key={raffle.id}
+                className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-magnolia-200 dark:border-blackswarm-700"
+              >
+                <div className="text-center mb-4">
+                  <div className="text-4xl mb-2">
+                    {raffle.image_url ? (
+                      <img
+                        src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
+                        alt={raffle.title}
+                        className="w-full h-32 object-cover rounded-md mb-3"
+                        onError={e => {
+                          e.currentTarget.src = TRANSPARENT_PIXEL;
+                        }}
+                      />
+                    ) : (
+                      '🎁'
+                    )}
                   </div>
+                  <h3 className="text-lg font-semibold text-blackswarm-900 dark:text-magnolia-50 mb-2">
+                    {raffle.title}
+                  </h3>
+                  <p className="text-blackswarm-600 dark:text-magnolia-400 text-sm mb-3">
+                    {raffle.description}
+                  </p>
                 </div>
 
-                <button onClick={() => navigate('/user/join')} className="w-full bg-gradient-to-r from-bonfire-500 to-embers-500 text-white py-2 px-4 rounded-lg hover:from-bonfire-600 hover:to-embers-600 transition-all duration-200">
-                  Join Raffle
-                </button>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-blackswarm-500 dark:text-magnolia-400 mb-1">
+                        Time Remaining
+                      </p>
+                      <CountdownTimer endDate={raffle.end_date} />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => navigate('/user/join')}
+                    className="w-full bg-gradient-to-r from-bonfire-500 to-embers-500 text-white py-2 px-4 rounded-lg hover:from-bonfire-600 hover:to-embers-600 transition-all duration-200"
+                  >
+                    Join Raffle
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
-
-      
 
       {/* Recent Winners */}
       <div className="bg-magnolia-50 dark:bg-blackswarm-800 rounded-lg shadow-lg p-6">
         <div className="flex items-center mb-6">
           <Star className="w-6 h-6 text-bonfire-500 mr-2" />
-          <h2 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50">Recent Winners</h2>
+          <h2 className="text-xl font-bold text-blackswarm-900 dark:text-magnolia-50">
+            Recent Winners
+          </h2>
         </div>
-        
+
         <div className="space-y-4">
           {[
             { name: 'Sarah M.', prize: 'iPad Pro 12.9"', date: '2 days ago' },
@@ -266,11 +287,17 @@ const UserLanding = () => {
                   {winner.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">{winner.name}</p>
-                  <p className="text-sm text-blackswarm-600 dark:text-magnolia-400">Won {winner.prize}</p>
+                  <p className="font-medium text-blackswarm-900 dark:text-magnolia-50">
+                    {winner.name}
+                  </p>
+                  <p className="text-sm text-blackswarm-600 dark:text-magnolia-400">
+                    Won {winner.prize}
+                  </p>
                 </div>
               </div>
-              <span className="text-sm text-blackswarm-500 dark:text-magnolia-400">{winner.date}</span>
+              <span className="text-sm text-blackswarm-500 dark:text-magnolia-400">
+                {winner.date}
+              </span>
             </div>
           ))}
         </div>

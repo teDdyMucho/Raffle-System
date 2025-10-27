@@ -42,7 +42,7 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
     if (!mq) return;
-    const handler = (e) => {
+    const handler = e => {
       const stored = localStorage.getItem('raffle_theme');
       // only auto-switch if user never stored a preference
       if (!stored) setIsDark(!!e.matches);
@@ -61,12 +61,8 @@ export const ThemeProvider = ({ children }) => {
 
   const value = {
     isDark,
-    toggleTheme
+    toggleTheme,
   };
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };

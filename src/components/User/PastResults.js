@@ -28,16 +28,12 @@ const PastResults = () => {
   const [consolationWinners, setConsolationWinners] = useState([]);
 
   const location = useLocation();
-  const categories = ['all', 'Electronics', 'Gaming', 'Luxury', 'Fashion', 'Home'];
-
+  const categories = ['all', 'Electronics', 'Gaming', 'Luxury', 'Fashion', 'Home', 'Entertainment'];
 
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
-      let query = supabase
-        .from('raffles')
-        .select('*')
-        .order('end_date', { ascending: false });
+      let query = supabase.from('raffles').select('*').order('end_date', { ascending: false });
       // Filter for ended raffles (status inactive, or end_date in the past)
       const now = new Date().toISOString();
       query = query.or('status.eq.inactive,end_date.lt.' + now);
@@ -71,7 +67,7 @@ const PastResults = () => {
       }
       try {
         const counts = await Promise.all(
-          results.map(async (r) => {
+          results.map(async r => {
             const name = r.title || '';
             if (!name) return { name, count: 0 };
             const { count, error } = await supabase
@@ -85,7 +81,9 @@ const PastResults = () => {
           })
         );
         const map = {};
-        counts.forEach(({ name, count }) => { if (name) map[name] = count; });
+        counts.forEach(({ name, count }) => {
+          if (name) map[name] = count;
+        });
         setParticipantsByRaffleName(map);
       } catch (e) {
         setParticipantsByRaffleName({});
@@ -155,7 +153,7 @@ const PastResults = () => {
   };
 
   // Normalize date-only to local end-of-day then compute remaining
-  const getTimeRemaining = (endDate) => {
+  const getTimeRemaining = endDate => {
     let end;
     if (typeof endDate === 'string') {
       const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(endDate);
@@ -166,15 +164,15 @@ const PastResults = () => {
     return Date.parse(end) - Date.parse(currentTime);
   };
 
-  const filteredRaffles = results.filter((raffle) => {
+  const filteredRaffles = results.filter(raffle => {
     const matchesSearch = (raffle.title || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || raffle.category === selectedCategory;
-    const isEndedNow = (raffle.status === 'inactive') || (getTimeRemaining(raffle.end_date) <= 0);
+    const isEndedNow = raffle.status === 'inactive' || getTimeRemaining(raffle.end_date) <= 0;
     return matchesSearch && matchesCategory && isEndedNow;
   });
 
   // Open per-raffle winners modal and fetch rows from winners table
-  const openRaffleWinners = async (raffle) => {
+  const openRaffleWinners = async raffle => {
     if (!raffle) return;
     setSelectedRaffleName(raffle.title || '');
     setShowRaffleWinners(true);
@@ -187,7 +185,7 @@ const PastResults = () => {
         .order('created_at', { ascending: false });
       if (error) throw error;
       const allWinners = Array.isArray(data) ? data : [];
-      const mainWinners = allWinners.filter((w) => w?.winner_type !== 'consolation');
+      const mainWinners = allWinners.filter(w => w?.winner_type !== 'consolation');
       setRaffleWinners(mainWinners);
       // Try to load consolation winners by common patterns
       let cons = [];
@@ -225,11 +223,11 @@ const PastResults = () => {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -240,7 +238,9 @@ const PastResults = () => {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Raffle Results</h1>
-        <p className="text-gray-600 dark:text-gray-400">Check out our previous winners and their lucky numbers!</p>
+        <p className="text-gray-600 dark:text-gray-400">
+          Check out our previous winners and their lucky numbers!
+        </p>
       </div>
 
       {/* Search and Filter */}
@@ -254,7 +254,7 @@ const PastResults = () => {
                 type="text"
                 placeholder="Search by raffle name, winner, or ticket number..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
@@ -265,7 +265,7 @@ const PastResults = () => {
             <Filter className="w-4 h-4 text-gray-500" />
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={e => setSelectedCategory(e.target.value)}
               className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
             >
               {categories.map(category => (
@@ -282,8 +282,12 @@ const PastResults = () => {
       {filteredRaffles.length === 0 ? (
         <div className="text-center py-12">
           <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No results found</h3>
-          <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or filter criteria.</p>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            No results found
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            Try adjusting your search or filter criteria.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -300,62 +304,66 @@ const PastResults = () => {
               <p className="text-sm">Winners will appear here once raffles are completed!</p>
             </div>
           )}
-          {!loading && filteredRaffles.map((raffle) => (
-            <div
-              key={raffle.id}
-              className="card hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-l-green-500"
-            >
-              {/* Header */}
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center">
-                  {raffle.image_url && (
-                    <img
-                      src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
-                      alt={raffle.title}
-                      className="w-16 h-16 object-cover rounded mr-3"
-                      onError={(e) => { e.currentTarget.src = TRANSPARENT_PIXEL; }}
-                    />
-                  )}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {raffle.title}
-                    </h3>
-                    <span className="inline-block bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-medium">
-                      {raffle.category}
-                    </span>
+          {!loading &&
+            filteredRaffles.map(raffle => (
+              <div
+                key={raffle.id}
+                className="card hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-l-green-500"
+              >
+                {/* Header */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center">
+                    {raffle.image_url && (
+                      <img
+                        src={resolveImageUrl(raffle.image_url) || TRANSPARENT_PIXEL}
+                        alt={raffle.title}
+                        className="w-16 h-16 object-cover rounded mr-3"
+                        onError={e => {
+                          e.currentTarget.src = TRANSPARENT_PIXEL;
+                        }}
+                      />
+                    )}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {raffle.title}
+                      </h3>
+                      <span className="inline-block bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-medium">
+                        {raffle.category}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                
-              </div>
 
-              {/* View Winner button only */}
-              <div className="mb-4">
-                <button
-                  onClick={() => openRaffleWinners(raffle)}
-                  className="btn-primary text-sm w-full"
-                >
-                  View Winners
-                </button>
-              </div>
+                {/* View Winner button only */}
+                <div className="mb-4">
+                  <button
+                    onClick={() => openRaffleWinners(raffle)}
+                    className="btn-primary text-sm w-full"
+                  >
+                    View Winners
+                  </button>
+                </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-1 gap-4 mb-4 text-sm">
-                <div className="flex items-center">
-                  <Users className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
-                  <div>
-                    <p className="text-gray-600 dark:text-gray-400">Participants</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{(participantsByRaffleName[raffle.title] ?? 0).toLocaleString()}</p>
+                {/* Stats */}
+                <div className="grid grid-cols-1 gap-4 mb-4 text-sm">
+                  <div className="flex items-center">
+                    <Users className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400">Participants</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {(participantsByRaffleName[raffle.title] ?? 0).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Date */}
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Ended on {formatDate(raffle.end_date)}</span>
+                {/* Date */}
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span>Ended on {formatDate(raffle.end_date)}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 
@@ -366,10 +374,15 @@ const PastResults = () => {
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                 <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
-                Winner{Array.isArray(raffleWinners) && raffleWinners.length !== 1 ? 's' : ''} — {selectedRaffleName || 'Raffle'}
+                Winner{Array.isArray(raffleWinners) && raffleWinners.length !== 1 ? 's' : ''} —{' '}
+                {selectedRaffleName || 'Raffle'}
               </h3>
               <button
-                onClick={() => { setShowRaffleWinners(false); setRaffleWinners([]); setConsolationWinners([]); }}
+                onClick={() => {
+                  setShowRaffleWinners(false);
+                  setRaffleWinners([]);
+                  setConsolationWinners([]);
+                }}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 aria-label="Close"
               >
@@ -380,50 +393,78 @@ const PastResults = () => {
               {raffleWinnersLoading && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">Loading winners…</div>
               )}
-              {!raffleWinnersLoading && Array.isArray(raffleWinners) && raffleWinners.length === 0 && (
-                <div className="text-sm text-gray-600 dark:text-gray-400">No winner recorded yet.</div>
-              )}
-              {!raffleWinnersLoading && Array.isArray(raffleWinners) && raffleWinners.map((w, idx) => (
-                <div key={w.id || idx} className="border border-gray-200 dark:border-gray-700 rounded-md p-4">
-                  <div className="flex items-center justify-start">
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Ticket</p>
-                      <p className="font-medium text-gray-900 dark:text-white">#{w.ticket_number || '—'}</p>
-                    </div>
+              {!raffleWinnersLoading &&
+                Array.isArray(raffleWinners) &&
+                raffleWinners.length === 0 && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    No winner recorded yet.
                   </div>
-                  {w.created_at && (
-                    <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">Won on {new Date(w.created_at).toLocaleString()}</div>
-                  )}
-                </div>
-              ))}
+                )}
+              {!raffleWinnersLoading &&
+                Array.isArray(raffleWinners) &&
+                raffleWinners.map((w, idx) => (
+                  <div
+                    key={w.id || idx}
+                    className="border border-gray-200 dark:border-gray-700 rounded-md p-4"
+                  >
+                    <div className="flex items-center justify-start">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Ticket</p>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          #{w.ticket_number || '—'}
+                        </p>
+                      </div>
+                    </div>
+                    {w.created_at && (
+                      <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                        Won on {new Date(w.created_at).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                ))}
 
               {/* Consolation Prize Winners */}
               {!raffleWinnersLoading && (
                 <div className="mt-4">
-                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Consolation Prize Winners</h4>
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                    Consolation Prize Winners
+                  </h4>
                   {Array.isArray(consolationWinners) && consolationWinners.length > 0 ? (
                     consolationWinners.map((w, idx) => (
-                      <div key={w.id || `c-${idx}`} className="border border-gray-200 dark:border-gray-700 rounded-md p-4 mb-2">
+                      <div
+                        key={w.id || `c-${idx}`}
+                        className="border border-gray-200 dark:border-gray-700 rounded-md p-4 mb-2"
+                      >
                         <div className="flex items-center justify-start">
                           <div>
                             <p className="text-xs text-gray-600 dark:text-gray-400">Ticket</p>
-                            <p className="font-medium text-gray-900 dark:text-white">#{w.ticket_number || '—'}</p>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              #{w.ticket_number || '—'}
+                            </p>
                           </div>
                         </div>
                         {w.created_at && (
-                          <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">Won on {new Date(w.created_at).toLocaleString()}</div>
+                          <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                            Won on {new Date(w.created_at).toLocaleString()}
+                          </div>
                         )}
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-gray-600 dark:text-gray-400">No consolation winners recorded.</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      No consolation winners recorded.
+                    </p>
                   )}
                 </div>
               )}
             </div>
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
               <button
-                onClick={() => { setShowRaffleWinners(false); setRaffleWinners([]); setConsolationWinners([]); }}
+                onClick={() => {
+                  setShowRaffleWinners(false);
+                  setRaffleWinners([]);
+                  setConsolationWinners([]);
+                }}
                 className="btn-primary"
               >
                 Close
@@ -452,7 +493,10 @@ const PastResults = () => {
             </div>
             <div className="px-6 py-4 space-y-3 max-h-[60vh] overflow-auto">
               {myWins.map((w, idx) => (
-                <div key={w.id || idx} className="border border-gray-200 dark:border-gray-700 rounded-md p-4">
+                <div
+                  key={w.id || idx}
+                  className="border border-gray-200 dark:border-gray-700 rounded-md p-4"
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Raffle</p>
@@ -460,7 +504,9 @@ const PastResults = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Ticket</p>
-                      <p className="font-medium text-gray-900 dark:text-white">#{w.ticket_number}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        #{w.ticket_number}
+                      </p>
                     </div>
                   </div>
                   <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -473,10 +519,7 @@ const PastResults = () => {
               )}
             </div>
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-              <button
-                onClick={() => setShowWinnersModal(false)}
-                className="btn-primary"
-              >
+              <button onClick={() => setShowWinnersModal(false)} className="btn-primary">
                 Close
               </button>
             </div>
@@ -487,32 +530,37 @@ const PastResults = () => {
       {/* Statistics Summary */}
       <div className="card">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Overall Statistics</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl border border-blue-200 dark:border-blue-800">
             <div className="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Trophy className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{results.length}</h3>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {results.length}
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 font-medium">Completed Raffles</p>
           </div>
-          
+
           <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl border border-green-200 dark:border-green-800">
             <div className="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Users className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{(totalParticipants ?? 0).toLocaleString()}</h3>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {(totalParticipants ?? 0).toLocaleString()}
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 font-medium">Total Participants</p>
           </div>
-          
+
           <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl border border-purple-200 dark:border-purple-800">
             <div className="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Ticket className="w-8 h-8 text-purple-600 dark:text-purple-400" />
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{totalTicketsSold.toLocaleString()}</h3>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {totalTicketsSold.toLocaleString()}
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 font-medium">Tickets Sold</p>
           </div>
-
         </div>
       </div>
     </div>
