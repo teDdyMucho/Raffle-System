@@ -592,34 +592,91 @@ const UserProfile = () => {
             const { data: raffles, error: rErr } = await supabase
               .from('raffles')
               .select(
-                'id, title, description, end_date, ends_at, end, close_at, draw_date, draw_at, deadline, status, ticket_price, ticket_price_cents, price, price_cents, entry_price, ticket_cost, amount, winner, image_url'
+                'id, title, description, end_date, ends_at, end, close_at, draw_date, draw_at, deadline, status, ticket_price, ticket_price_cents, price, price_cents, entry_price, ticket_cost, amount, winner, image_url, name, raffle_name'
               )
               .in('id', ids);
             if (!rErr) {
               raffleMap = new Map((raffles || []).map(r => [String(r.id), r]));
             } else {
               // eslint-disable-next-line no-console
-              console.warn('[Profile] raffles fetch warning:', rErr.message || rErr);
+              console.warn('[Profile] raffles fetch warning (by id):', rErr.message || rErr);
+            }
+            // If none returned, try with numeric-cast IDs (in case of type mismatch)
+            if ((!raffles || raffles.length === 0) && ids.length > 0) {
+              const numericIds = ids
+                .map(v => {
+                  const n = Number(v);
+                  return Number.isFinite(n) ? n : null;
+                })
+                .filter(v => v !== null);
+              if (numericIds.length > 0) {
+                const rB = await supabase
+                  .from('raffles')
+                  .select(
+                    'id, title, description, end_date, ends_at, end, close_at, draw_date, draw_at, deadline, status, ticket_price, ticket_price_cents, price, price_cents, entry_price, ticket_cost, amount, winner, image_url, name, raffle_name'
+                  )
+                  .in('id', numericIds);
+                if (!rB.error && rB.data) {
+                  raffleMap = new Map((rB.data || []).map(r => [String(r.id), r]));
+                }
+              }
             }
           } catch (raffleErr) {
             // eslint-disable-next-line no-console
-            console.warn(
-              '[Profile] raffles fetch failed, continuing with defaults:',
-              raffleErr?.message || raffleErr
-            );
+            console.warn('[Profile] raffles fetch failed (by id), continuing:', raffleErr?.message || raffleErr);
           }
         }
 
-        // Optional auto-repair: backfill missing ticket price/user fields based on raffle and current user
-        if (process.env.NODE_ENV !== 'production') {
-          // eslint-disable-next-line no-console
-          console.log(
-            '[Profile] tickets fetched:',
-            (tickets || []).length,
-            'sample:',
-            (tickets || [])[0]
+        // Fetch winners for these raffles, so we can mark results per user
+        let winnersByRaffle = new Map(); // key: String(raffle_id), value: { emails: Set, rows: [] }
+        let winnersByName = new Map(); // key: raffle_name (lc), value: { emails: Set, rows: [] }
+        try {
+          if (ids.length > 0) {
+            const w = await supabase
+              .from('winners')
+              .select('id, raffle_id, raffle_name, user_email, user_name, prize_type, created_at')
+              .in('raffle_id', ids);
+            if (!w.error && Array.isArray(w.data)) {
+              for (const row of w.data) {
+                const key = String(row.raffle_id ?? '');
+                if (!key) continue;
+                const cur = winnersByRaffle.get(key) || { emails: new Set(), rows: [] };
+                if (row.user_email) cur.emails.add(String(row.user_email).toLowerCase());
+                cur.rows.push(row);
+                winnersByRaffle.set(key, cur);
+              }
+            }
+          }
+          // Also try by raffle_name using names derived from tickets in case raffle_id doesn't align
+          const nameCandidates = Array.from(
+            new Set(
+              (tickets || [])
+                .map(t => t.raffle_name || t.raffle_title || t.title || t.event_name || t.raffle || null)
+                .filter(Boolean)
+                .map(s => String(s).trim())
+            )
           );
+          if (nameCandidates.length > 0) {
+            const w2 = await supabase
+              .from('winners')
+              .select('id, raffle_id, raffle_name, user_email, user_name, prize_type, created_at')
+              .in('raffle_name', nameCandidates);
+            if (!w2.error && Array.isArray(w2.data)) {
+              for (const row of w2.data) {
+                const k = (row.raffle_name ? String(row.raffle_name).toLowerCase().trim() : '') || '';
+                if (!k) continue;
+                const cur = winnersByName.get(k) || { emails: new Set(), rows: [] };
+                if (row.user_email) cur.emails.add(String(row.user_email).toLowerCase());
+                cur.rows.push(row);
+                winnersByName.set(k, cur);
+              }
+            }
+          }
+        } catch (wErr) {
+          // eslint-disable-next-line no-console
+          console.warn('[Profile] winners fetch warning:', wErr?.message || wErr);
         }
+
 
         if (AUTO_REPAIR_TICKETS && tickets && tickets.length > 0) {
           try {
@@ -670,30 +727,110 @@ const UserProfile = () => {
 
         let rows = (tickets || []).map(t => {
           const r = raffleMap.get(String(t.raffle_id)) || {};
-          // Explicit hookup: tickets.raffle_id -> raffles.end_date
-          const endRaw = r.end_date ?? t.end_date ?? null;
-          const endDate = endRaw ? new Date(endRaw).toISOString() : null;
+          // Explicit hookup: tickets.raffle_id -> raffles end-like fields
+          const endCandidates = [
+            r.end_date,
+            r.ends_at,
+            r.end,
+            r.close_at,
+            r.draw_date,
+            r.draw_at,
+            r.deadline,
+            t.end_date,
+          ].filter(Boolean);
+          // Normalize to milliseconds. If date-only (YYYY-MM-DD), treat as local end-of-day 23:59:59
+          const toMs = v => {
+            if (!v) return null;
+            try {
+              const s = String(v);
+              const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(s);
+              const d = new Date(isDateOnly ? `${s}T23:59:59` : s);
+              const ms = d.getTime();
+              return Number.isFinite(ms) ? ms : null;
+            } catch (_) {
+              return null;
+            }
+          };
+          const endTimes = endCandidates.map(toMs).filter(ms => ms != null);
+          // If any end-like timestamp is in the past, treat as completed
+          const anyEnded = endTimes.some(ms => ms < Date.now());
+          // Compute a stable ISO end date from the first candidate for display
+          const toIso = v => {
+            if (!v) return null;
+            try {
+              const s = String(v);
+              const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(s);
+              return new Date(isDateOnly ? `${s}T23:59:59` : s).toISOString();
+            } catch (_) {
+              return null;
+            }
+          };
+          const endDate = toIso(endCandidates[0] || null);
+
           // Normalize status for filter: 'active' | 'completed'
           let status = 'active';
           if (typeof r.status === 'string') {
             const s = r.status.toLowerCase();
-            if (['completed', 'ended', 'closed', 'finished', 'done'].includes(s))
+            const completedStatuses = [
+              'completed',
+              'complete',
+              'ended',
+              'closed',
+              'finished',
+              'done',
+              'inactive',
+            ];
+            if (completedStatuses.includes(s)) status = 'completed';
+            // If the status is anything other than explicit 'active' or 'paused' or 'draft', and we have an end date in the past, mark completed
+            if (status !== 'completed' && !['active', 'paused', 'draft'].includes(s) && anyEnded) {
               status = 'completed';
-            else status = 'active';
+            }
           }
-          // If no explicit status, infer from end_date
-          if (!r.status && endDate) {
-            try {
-              if (new Date(endDate).getTime() < Date.now()) status = 'completed';
-            } catch (_) {}
+          // Fall back to ticket.status if present
+          if (status !== 'completed' && typeof t.status === 'string') {
+            const ts = t.status.toLowerCase();
+            if (['completed', 'complete', 'ended', 'closed', 'finished', 'done', 'inactive'].includes(ts)) {
+              status = 'completed';
+            }
+          }
+          // Consider presence of a winner as completed
+          if (status !== 'completed' && r.winner) status = 'completed';
+          // If not already completed, infer from any end/draw timestamp
+          if (status !== 'completed' && anyEnded) {
+            status = 'completed';
+          }
+          // If winners are recorded for this raffle (by id or by name), force completed
+          if (status !== 'completed') {
+            const winKey = String(t.raffle_id || '');
+            const nameKeyCandidate = (
+              r.raffle_name ||
+              r.title ||
+              r.name ||
+              t.raffle_name ||
+              t.raffle_title ||
+              t.title ||
+              t.event_name ||
+              t.raffle ||
+              ''
+            )
+              .toString()
+              .toLowerCase()
+              .trim();
+            if ((winKey && winnersByRaffle.has(winKey)) || (nameKeyCandidate && winnersByName.has(nameKeyCandidate))) {
+              status = 'completed';
+            }
           }
           const isCompleted = status === 'completed';
-          const result =
-            isCompleted && r.winner && (r.winner === t.user_name || r.winner === t.user_email)
-              ? 'won'
-              : isCompleted
-                ? 'lost'
-                : '';
+          // Determine if current user is a winner either by raffle.winner or winners table
+          let isWinner = false;
+          if (r.winner && (r.winner === t.user_name || r.winner === t.user_email)) isWinner = true;
+          const winKey = String(t.raffle_id || '');
+          if (!isWinner && winKey && winnersByRaffle.has(winKey)) {
+            const set = winnersByRaffle.get(winKey)?.emails || new Set();
+            const emailLc = (t.user_email || '').toLowerCase();
+            if (emailLc && set.has(emailLc)) isWinner = true;
+          }
+          const result = isCompleted ? (isWinner ? 'won' : 'lost') : 'pending';
           // Compute display prize with immediate fallback
           let prizeDisplay = resolvePriceDisplay(r, t);
           if (prizeDisplay === '₱—') {
@@ -707,7 +844,7 @@ const UserProfile = () => {
               });
             }
           }
-          if (!endDate && process.env.NODE_ENV !== 'production') {
+          if (!endDate && endTimes.length === 0 && process.env.NODE_ENV !== 'production') {
             // eslint-disable-next-line no-console
             console.warn('[Profile] End date missing for ticket', t.id, {
               raffleKeys: Object.keys(r || {}),
@@ -1080,8 +1217,13 @@ const UserProfile = () => {
                             </div>
                             <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-gray-600 dark:text-gray-400">
                               <div>
-                                <span className="font-medium">Result:</span>{' '}
-                                {ticket.result ? ticket.result : '—'}
+                                <a
+                                  href={`/user/results?q=${encodeURIComponent(ticket.raffleTitle || '')}`}
+                                  className="text-primary-600 dark:text-primary-400 hover:underline font-medium"
+                                  title="View raffle results"
+                                >
+                                  See results
+                                </a>
                               </div>
                             </div>
                           </div>
